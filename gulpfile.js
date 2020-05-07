@@ -1,15 +1,15 @@
-const { src, dest, parallel, series, watch } = require('gulp'),
-browserSync = require('browser-sync').create(),
-data = require('gulp-data'),
-twig = require('gulp-twig'),
-sass = require('gulp-sass'),
-postcss = require('gulp-postcss');
+const { src, dest, parallel, series, watch } = require('gulp');
+const browserSync = require('browser-sync').create();
+const data = require('gulp-data');
+const twig = require('gulp-twig');
+const sass = require('gulp-sass');
+// postcss = require('gulp-postcss');
 
 const path = {
     html: {
-        src: ["./src/**/*.twig",'!./src/**/_*.twig'],
+        src: ["./src/**/*.twig", '!./src/**/_*.twig'],
+        watch: ["./src/**/*.twig","./src/data.json"],
         data: "./src/data.json",
-        watch: ["./src/**/*.twig"],
         dest: "./build"
     },
     css: {
@@ -21,7 +21,7 @@ const path = {
 
 function compileHTML() {
     return src(path.html.src)
-        .pipe(data(()=>require(path.html.data)))
+        .pipe(data(() => require(path.html.data)))
         .pipe(twig({
             extname: ".html",
         }))
@@ -30,9 +30,13 @@ function compileHTML() {
 
 function compileCSS() {
     return src(path.css.src)
-      .pipe(sass().on('error', sass.logError))
-      .pipe(dest(path.css.dest));
-  }
+        .pipe(sass())
+        .on('error', function (err) {
+            console.log(err.message + ' on line ' + err.lineNumber + ' in file : ' + err.fileName);
+        })
+        .pipe(dest(path.css.dest))
+        .pipe(browserSync.stream());
+}
 
 function server(cb) {
     browserSync.init({
@@ -40,7 +44,7 @@ function server(cb) {
             baseDir: "./build",
             directory: true
         },
-        open: false,
+        open: true,
         notify: true
     })
     cb();
@@ -49,5 +53,5 @@ function server(cb) {
 
 exports.default = series(server);
 
-watch(path.html.watch).on('change', series[compileHTML, browserSync.reload]);
-watch(path.css.watch).on('change', series[compileCSS, browserSync.stream]); 
+watch(path.html.watch).on('change', series(compileHTML, browserSync.reload));
+watch(path.css.watch).on('change', series(compileCSS)); 
