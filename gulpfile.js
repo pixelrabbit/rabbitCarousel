@@ -1,9 +1,9 @@
 const { src, dest, parallel, series, watch } = require('gulp');
+const pipeline = require('stream');
 const browserSync = require('browser-sync').create();
 const data = require('gulp-data');
 const twig = require('gulp-twig');
 const sass = require('gulp-sass');
-// postcss = require('gulp-postcss');
 
 const path = {
     html: {
@@ -16,6 +16,11 @@ const path = {
         src: ["./src/css/**/*.scss"],
         watch: ["./src/css/**/*.scss"],
         dest: "./build/css/"
+    },
+    js: {
+        src: ["./src/js/**/*.js"],
+        watch: ["./src/js/**/*.js"],
+        dest: "./build/js/"
     }
 }
 
@@ -37,6 +42,10 @@ function compileCSS() {
         .pipe(dest(path.css.dest))
         .pipe(browserSync.stream());
 }
+function moveJS() {
+    return src(path.js.src)
+          .pipe(dest(path.js.dest))
+  }
 
 function server(cb) {
     browserSync.init({
@@ -44,7 +53,7 @@ function server(cb) {
             baseDir: "./build",
             directory: true
         },
-        open: true,
+        open: false,
         notify: true
     })
     cb();
@@ -54,4 +63,5 @@ function server(cb) {
 exports.default = series(server);
 
 watch(path.html.watch).on('change', series(compileHTML, browserSync.reload));
+watch(path.js.watch).on('change', series(moveJS, browserSync.reload)); 
 watch(path.css.watch).on('change', series(compileCSS)); 

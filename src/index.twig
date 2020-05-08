@@ -1,10 +1,10 @@
 {% extends "./partials/_template.twig" %}
 {% block main %} 
-<div class="rc">
-    <ul class="rc__slider">
-        {% for item in carousel %}
-        <li class="rc__item">
-            <p>{{item.heading}}</p> 
+<div class="carousel">
+    <ul class="carousel__slider">
+        {% for item in carousel %} 
+        <li class="carousel__item">
+            <p>{{loop.index}} {{item.heading}}</p>  
         </li>
         {% endfor %}
     </ul>

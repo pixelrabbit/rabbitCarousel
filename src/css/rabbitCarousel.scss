@@ -1,11 +1,14 @@
-.rc {
-  width: 500px;
+.carousel {
+  width: 1600px;   
 }
-.rc__slider {
-  display: flex;
+.carousel__slider {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 }
-.rc__item {
-  height: 300px;
-  width: 300px;
+.carousel__item {
+  float: left;
+  height: 400px;
+  width: 400px;
   background: #f3f3f3;
 }
