@@ -8,8 +8,8 @@ $(document).ready(function () {
 ; (function ($, window, document, undefined) {
     function Rabbit(element, options) {
 
-        this.options = $.extend({}, Rabbit.defaults, options);
-        this.element = $(element);
+        this.options = Object.assign(Rabbit.defaults, options);
+        //this.element = $(element);
         this.items = [];
         this._handlers = {};
         this._current = null;
@@ -21,15 +21,16 @@ $(document).ready(function () {
 
     //default options
     Rabbit.defaults = {
+        stage: ".carousel__stage",
+        container: ".carousel__container",
+        items: ".carousel__item",
+        
         autoplay: false,
         circular: false,
         timeout: 6000,
         animation: "fade", //slide, fade, instant
         pager: false, //false or provide selector for container
-        numVisible: 1,
-        stage: ".carousel__stage",
-        container: ".carousel__container",
-        items: ".carousel__item"
+        numVisible: 1
     }
 
 
