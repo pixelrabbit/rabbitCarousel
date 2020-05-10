@@ -1,12 +1,24 @@
-{% extends "./partials/_template.twig" %}
-{% block main %} 
-<div class="carousel">
-    <ul class="carousel__slider">
-        {% for item in carousel %} 
-        <li class="carousel__item">
-            <p>{{loop.index}} {{item.heading}}</p>  
-        </li>
-        {% endfor %}
-    </ul>
-</div>
+{% extends './partials/_template.twig' %}
+{% block main %}
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <div class="carousel__stage">
+          <ul class="carousel__container">
+            {% for item in carousel %}
+              <li class="carousel__item">
+                <p>
+                  {{ loop.index }} {{ item.heading }}
+                </p>
+              </li>
+            {% endfor %}
+          </ul>
+          <ul class="carousel__controls">
+              <li><button type="button"><span>Prev</span></button></li>
+              <li><button type="button"><span>Next</span></button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
