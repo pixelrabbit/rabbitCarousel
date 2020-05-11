@@ -1,6 +1,23 @@
-function Rabbit(element, options) {
+function rabbitCarousel(options) {
 
-    this.options = Object.assign(Rabbit.defaults, options);
+    // merge user provided options over defaults
+    this.options = Object.assign({
+        stage: ".carousel__stage",
+        container: ".carousel__container",
+        items: ".carousel__item",
+
+        startIndex: 0, //TODO
+        autoplay: false, //TODO
+        circular: false, //TODO
+        timeout: 6000, //TODO
+
+        animation: "slide", //TODO: slide, fade, instant
+        easing: "ease-in-out",
+        duration: 400,
+
+        perPage: false, //if false, slides can be different widths; if number this is the amount of items visible per page
+        pager: false //TODO: false or provide selector for container
+    }, options);
 
     this.stage = null;
     this.container = null;
@@ -9,22 +26,39 @@ function Rabbit(element, options) {
     //
     // the main function for animating carousel
     this.to = function (i) {
-        console.log("to",i);
-        
+        console.log("to", i);
+
         var offset = this.items[i].x * -1;
         this.container.style.transform = `translateX(${offset}px)`;
-        this.container.style.webkitTransform  = `translateX(${offset}px)`;
-        console.log(this.container)
+        this.container.style.webkitTransform = `translateX(${offset}px)`;
     }
     // next and prev are shortcuts of to method
     this.prev = function () {
-        this._current -= 1;
-        this.to( this._current)
-    }
-    this.next = function () {
-        this._current += 1;
+        var increment = (this.options.perPage) ? this.options.perPage * 1 : 1;
+        this._current = this._current - increment;
         this.to(this._current)
     }
+    this.next = function () {
+        var increment = (this.options.perPage) ? this.options.perPage * 1 : 1;
+        this._current = this._current + increment;
+        this.to(this._current)
+    }
+    //
+    this.initialize = function () {
+        console.log("initialize", this.items)
+
+        //set x coordinates
+        this.items.forEach(function (item, i) {
+            item.x = item.el.offsetLeft
+        });
+
+        //enable transition on container
+        if (this.options.animation == "slide") {
+            this.container.style.webkitTransition = `all ${this.options.duration}ms ${this.options.easing}`;
+            this.container.style.transition = `all ${this.options.duration}ms ${this.options.easing}`;
+        }
+    }
+    //
     //
     this.setStage();
     this.initialize();
@@ -32,25 +66,9 @@ function Rabbit(element, options) {
 
 
 //default options
-Rabbit.defaults = {
-    stage: ".carousel__stage",
-    container: ".carousel__container",
-    items: ".carousel__item",
-
-    startIndex: 0,
-    autoplay: false,
-    circular: false,
-    timeout: 6000,
-    duration: 200,
-    animation: "slide", //slide, fade, instant
-    easing: "ease-out",
-
-    perPage: false,
-    pager: false //false or provide selector for container
-}
 
 
-Rabbit.prototype.setStage = function () {
+rabbitCarousel.prototype.setStage = function () {
     console.log("setStage");
 
     //identify stage
@@ -60,17 +78,28 @@ Rabbit.prototype.setStage = function () {
     //identify items
     this.items = this.stage.querySelectorAll(this.options.items);
 
+    //set item width if perPage is set
+    if (this.options.perPage) {
+        var stageWidth = this.stage.offsetWidth;
+        var itemWidth = stageWidth / this.options.perPage;
+        this.items.forEach(function (item, i) {
+            item.style.width = Math.ceil(itemWidth) + "px"
+        })
+    }
+
     //transform items array to array of objects with data
     var itemsArr = []
-    this.items.forEach(function (el, i) {
+    this.items.forEach(function (item, i) {
         var item = {
-            el: el,
-            width: el.offsetWidth,
-            height: el.offsetHeight
+            el: item,
+            width: item.offsetWidth,
+            height: item.offsetHeight
         }
         itemsArr.push(item);
     });
     this.items = itemsArr;
+
+
 
     //set container width
     var containerWidth = 0;
@@ -85,20 +114,7 @@ Rabbit.prototype.setStage = function () {
 }
 
 //initialize
-Rabbit.prototype.initialize = function () {
-    console.log("initialize", this.items)
 
-    //set x coordinates
-    this.items.forEach(function (item, i) {
-        item.x = item.el.offsetLeft
-    });
-
-    //enable transition on container
-    if(this.options.animation == "slide"){
-        this.container.style.webkitTransition = `all ${this.options.duration}ms ${this.options.easing}`;
-        this.container.style.transition = `all ${this.options.duration}ms ${this.options.easing}`;
-    }
-}
 
 
 
@@ -109,7 +125,10 @@ Rabbit.prototype.initialize = function () {
 
 
 $(document).ready(function () {
-    var carousel = new Rabbit();
+    var carousel = new rabbitCarousel({
+        duration: 1200,
+        perPage: 2
+    });
     document.querySelector('.btn--prev').addEventListener('click', function () { carousel.prev() });
     document.querySelector('.btn--next').addEventListener('click', function () { carousel.next() });
 });

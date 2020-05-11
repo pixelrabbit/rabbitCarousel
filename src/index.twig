@@ -3,6 +3,7 @@
   <div class="container">
     <div class="row">
       <div class="col-xs-9">
+          <p>Width of carousel is determined by its container element.</p>
         <div class="carousel__stage">
           <ul class="carousel__container">
             {% for item in carousel %}
@@ -10,6 +11,7 @@
                 <p>
                   {{ loop.index }} {{ item.heading }}
                 </p>
+                {# <img src="http://lorempixel.com/400/200/animals/{{loop.index}}" alt=""> #}
               </li>
             {% endfor %}
           </ul>
