@@ -15,9 +15,9 @@
   width: 400px;
   background: #f3f3f3;
   &:nth-child(1){background-color: #eee;}
-  &:nth-child(2){background-color: #ddd;}
+  &:nth-child(2){background-color: #ddd; width:300px;}
   &:nth-child(3){background-color: #ccc;}
-  &:nth-child(4){background-color: #bbb;}
+  &:nth-child(4){background-color: #bbb; width:500px}
   &:nth-child(5){background-color: #aaa;}
 }
 .carousel__controls {

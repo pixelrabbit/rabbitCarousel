@@ -1,101 +1,115 @@
-$(document).ready(function () {
-    $('.carousel__stage').rabbitCarousel({
-        timeout: 4000
-    });
-});
+function Rabbit(element, options) {
 
+    this.options = Object.assign(Rabbit.defaults, options);
 
-; (function ($, window, document, undefined) {
-    function Rabbit(element, options) {
-
-        this.options = Object.assign(Rabbit.defaults, options);
-        //this.element = $(element);
-        this.items = [];
-        this._handlers = {};
-        this._current = null;
-        //
-        this.setStage();
-        this.initialize();
-    }
-
-
-    //default options
-    Rabbit.defaults = {
-        stage: ".carousel__stage",
-        container: ".carousel__container",
-        items: ".carousel__item",
+    this.stage = null;
+    this.container = null;
+    this.items = [];
+    this._current = null;
+    //
+    // the main function for animating carousel
+    this.to = function (i) {
+        console.log("to",i);
         
-        autoplay: false,
-        circular: false,
-        timeout: 6000,
-        animation: "fade", //slide, fade, instant
-        pager: false, //false or provide selector for container
-        numVisible: 1
-    }
-
-
-    Rabbit.prototype.setStage = function () {
-
-        //setup items
-        var items = this.items;
-        $(this.element).find(this.options.items).each(function(index,el){
-            var item = {
-                el: $(el),
-                width: $(el).width(),
-                height: $(el).height()
-            }
-            items.push(item);
-        });
-        
-        //set container width
-        var containerWidth = 0;
-        this.items.forEach(function(item, i){
-            containerWidth += item.width;
-        })
-        $(this.options.container).css('width', containerWidth+"px");
-
-        //set current
-        this._current = 0;
-
-        //console.log(this.items)
-    }
-
-    //initialize
-    Rabbit.prototype.initialize = function () {
-        this.items.forEach(function(item,i){
-            item.x = $(item.el).position().left;
-        })
-        console.log(this.items)
-    }
-
-    Rabbit.prototype.to = function (targetItem) {
-
+        var offset = this.items[i].x * -1;
+        this.container.style.transform = `translateX(${offset}px)`;
+        this.container.style.webkitTransform  = `translateX(${offset}px)`;
+        console.log(this.container)
     }
     // next and prev are shortcuts of to method
-    Rabbit.prototype.next = function () {
-
+    this.prev = function () {
+        this._current -= 1;
+        this.to( this._current)
     }
-    Rabbit.prototype.prev = function () {
-
+    this.next = function () {
+        this._current += 1;
+        this.to(this._current)
     }
+    //
+    this.setStage();
+    this.initialize();
+}
 
-    //jquery constructor
-    $.fn.rabbitCarousel = function (option) {
-        var args = Array.prototype.slice.call(arguments, 1);
 
-        return this.each(function () {
-            var $this = $(this),
-                data = $this.data('rabbit.carousel');
+//default options
+Rabbit.defaults = {
+    stage: ".carousel__stage",
+    container: ".carousel__container",
+    items: ".carousel__item",
 
-            if (!data) {
-                data = new Rabbit(this, typeof option == 'object' && option);
-                $this.data('rabbit.carousel', data);
-            }
+    startIndex: 0,
+    autoplay: false,
+    circular: false,
+    timeout: 6000,
+    duration: 200,
+    animation: "slide", //slide, fade, instant
+    easing: "ease-out",
 
-            if (typeof option == 'string' && option.charAt(0) !== '_') {
-                data[option].apply(data, args);
-            }
-        });
-    };
-    $.fn.rabbitCarousel.Constructor = Rabbit;
-})(window.jQuery, window, document);
+    perPage: false,
+    pager: false //false or provide selector for container
+}
+
+
+Rabbit.prototype.setStage = function () {
+    console.log("setStage");
+
+    //identify stage
+    this.stage = document.querySelectorAll(this.options.stage)[0];
+    //identify container
+    this.container = document.querySelectorAll(this.options.container)[0];
+    //identify items
+    this.items = this.stage.querySelectorAll(this.options.items);
+
+    //transform items array to array of objects with data
+    var itemsArr = []
+    this.items.forEach(function (el, i) {
+        var item = {
+            el: el,
+            width: el.offsetWidth,
+            height: el.offsetHeight
+        }
+        itemsArr.push(item);
+    });
+    this.items = itemsArr;
+
+    //set container width
+    var containerWidth = 0;
+    this.items.forEach(function (el, i) {
+        containerWidth += el.width;
+    })
+    this.container.style.width = containerWidth + "px";
+
+    //set current
+    this._current = 0;
+
+}
+
+//initialize
+Rabbit.prototype.initialize = function () {
+    console.log("initialize", this.items)
+
+    //set x coordinates
+    this.items.forEach(function (item, i) {
+        item.x = item.el.offsetLeft
+    });
+
+    //enable transition on container
+    if(this.options.animation == "slide"){
+        this.container.style.webkitTransition = `all ${this.options.duration}ms ${this.options.easing}`;
+        this.container.style.transition = `all ${this.options.duration}ms ${this.options.easing}`;
+    }
+}
+
+
+
+
+
+
+
+
+
+$(document).ready(function () {
+    var carousel = new Rabbit();
+    document.querySelector('.btn--prev').addEventListener('click', function () { carousel.prev() });
+    document.querySelector('.btn--next').addEventListener('click', function () { carousel.next() });
+});
