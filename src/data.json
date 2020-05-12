@@ -1,6 +1,7 @@
 {
     "carousel":[{
-        "heading":"Slide 1"  
+        "heading":"Slide 1" ,
+        "content":"<a href='#'>Test Link</a>"
     },{
         "heading":"lorem"
     },{
