@@ -15,7 +15,17 @@ function rabbitCarousel(options) {
         easing: "ease-in-out",
         duration: 400,
 
-        perPage: false, //if false, slides can be different widths; if number this is the amount of items visible per page
+        breakpoints: {
+            0: {
+                perPage: 1
+            },
+            768: {
+                perPage: 2
+            },
+            1024: {
+                perPage: 3
+            }
+        },
         pager: false //TODO: false or provide selector for container
     }, options);
 
@@ -23,6 +33,21 @@ function rabbitCarousel(options) {
     this.container = null;
     this.items = [];
     this._current = null;
+    //
+    // resize handler
+    this.resizeHandler = function(){
+        var width = document.body.clientWidth;
+        console.log(width)
+    }
+    //
+    //set item width
+    this.setItemWidth = function () {
+            var stageWidth = this.stage.offsetWidth;
+            var itemWidth = stageWidth / this.options.perPage;
+            this.items.forEach(function (item, i) {
+                item.style.width = Math.ceil(itemWidth) + "px"
+            })
+    }
     //
     // the main function for animating carousel
     this.to = function (i) {
@@ -32,6 +57,7 @@ function rabbitCarousel(options) {
         this.container.style.transform = `translateX(${offset}px)`;
         this.container.style.webkitTransform = `translateX(${offset}px)`;
     }
+    //
     // next and prev are shortcuts of to method
     this.prev = function () {
         var increment = (this.options.perPage) ? this.options.perPage * 1 : 1;
@@ -45,7 +71,13 @@ function rabbitCarousel(options) {
     }
     //
     this.initialize = function () {
-        console.log("initialize", this.items)
+        console.log("initialize", this.items);
+
+        // bind resize handler
+        ['resize'].forEach(function(e){
+            window.addEventListener(e, this.resizeHandler);
+        }.bind(this))
+       
 
         //set x coordinates
         this.items.forEach(function (item, i) {
@@ -78,13 +110,9 @@ rabbitCarousel.prototype.setStage = function () {
     //identify items
     this.items = this.stage.querySelectorAll(this.options.items);
 
-    //set item width if perPage is set
-    if (this.options.perPage) {
-        var stageWidth = this.stage.offsetWidth;
-        var itemWidth = stageWidth / this.options.perPage;
-        this.items.forEach(function (item, i) {
-            item.style.width = Math.ceil(itemWidth) + "px"
-        })
+    //set item width if breakpoints is set
+    if (this.options.breakpoints) {
+    this.setItemWidth();
     }
 
     //transform items array to array of objects with data

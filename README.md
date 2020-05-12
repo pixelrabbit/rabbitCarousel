@@ -7,3 +7,6 @@ Scratch built carousel
 * prev/next buttons
 * can change configuration at breakpoints
 * slides can be different heights
+
+
+inspired by https://pawelgrzybek.github.io/siema/#browser-support
