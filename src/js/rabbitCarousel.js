@@ -80,6 +80,14 @@ function rabbitCarousel(options) {
 
     }
     //
+    //
+    // SLIDE INFO - return object of current slide(s)
+    this.info = function(){
+        console.log("info")
+    }
+    //
+    //
+    //
     // RESIZE HANDLER
     this._resizeHandler = function (e) {
         var vw = window.innerWidth || document.documentElement.clientWidth;
