@@ -1,5 +1,5 @@
 const { src, dest, parallel, series, watch } = require('gulp');
-const pipeline = require('stream');
+const fs = require('fs');
 const browserSync = require('browser-sync').create();
 const data = require('gulp-data');
 const twig = require('gulp-twig');
@@ -26,7 +26,9 @@ const path = {
 
 function compileHTML() {
     return src(path.html.src)
-        .pipe(data(() => require(path.html.data)))
+    .pipe(data(function(file) {
+        return JSON.parse(fs.readFileSync(path.html.data));
+      }))
         .pipe(twig({
             extname: ".html",
         }))

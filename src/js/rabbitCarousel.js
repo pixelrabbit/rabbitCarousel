@@ -1,10 +1,13 @@
 function rabbitCarousel(options) {
 
     // merge user provided options over defaults
-    this.options = Object.assign({
+    this._options = Object.assign({
         stage: ".carousel__stage",
         container: ".carousel__container",
         items: ".carousel__item",
+
+        prev: ".btn--prev",
+        next: ".btn--next",
 
         startIndex: 0, //TODO
         autoplay: false, //TODO
@@ -18,148 +21,176 @@ function rabbitCarousel(options) {
         breakpoints: {
             0: {
                 perPage: 1
-            },
-            768: {
-                perPage: 2
-            },
-            1024: {
-                perPage: 3
             }
         },
         pager: false //TODO: false or provide selector for container
     }, options);
-
-    this.stage = null;
-    this.container = null;
-    this.items = [];
-    this._current = null;
     //
-    // resize handler
-    this.resizeHandler = function(){
-        var width = document.body.clientWidth;
-        console.log(width)
-    }
+    //
+    // REFERENCES
+    this._stage = null;
+    this._container = null;
+    this._items = [];
+    this._current = null;
+    this._controls = {};
+
+    this._breakpoints = Object.keys(this._options.breakpoints).map(Number).sort(function (a, b) { return a - b }); // make array of numbers from breakpoints option
+    this._stageconfig = null;
+    //
     //
     //set item width
     this.setItemWidth = function () {
-            var stageWidth = this.stage.offsetWidth;
-            var itemWidth = stageWidth / this.options.perPage;
-            this.items.forEach(function (item, i) {
-                item.style.width = Math.ceil(itemWidth) + "px"
-            })
+        //console.log("setItemWidth", this._items);
+        var stageWidth = this._stage.offsetWidth;
+        var itemWidth = stageWidth / this._stageconfig.perPage;
+        this._items.forEach(function (item, i) {
+            var width = Math.ceil(itemWidth)
+            item.width = width;
+            item.el.style.width = width + "px";
+        })
+    }
+    //
+    //set container width
+    this.setContainerWidth = function () {
+        var containerWidth = 0;
+        this._items.forEach(function (el, i) {
+            containerWidth += el.width;
+        })
+        this._container.style.width = containerWidth + "px";
+    }
+    //
+    //
+    // STAGE
+    this.setStage = function () {
+        console.log("setStage");
+
+
+        //set item width if breakpoints is set
+        if (this._options.breakpoints) {
+            this.setItemWidth();
+        }
+        this.setContainerWidth();
+        //set x coordinates
+        this._items.forEach(function (item, i) {
+            item.x = item.el.offsetLeft
+        });
+
+        //set current
+        this._current = 0;
+
+    }
+    //
+    // RESIZE HANDLER
+    this._resizeHandler = function (e) {
+        var vw = window.innerWidth || document.documentElement.clientWidth;
+        this._breakpoints.forEach(function (bp, i) {
+            bp = Number(bp)
+            if (vw > bp) {
+                this._stageconfig = this._options.breakpoints[bp];
+            }
+        }.bind(this))
+        console.log(this._stageconfig)
+        this.setStage();
     }
     //
     // the main function for animating carousel
     this.to = function (i) {
-        console.log("to", i);
-
-        var offset = this.items[i].x * -1;
-        this.container.style.transform = `translateX(${offset}px)`;
-        this.container.style.webkitTransform = `translateX(${offset}px)`;
+        if(typeof this._items[i] !== 'undefined') {
+            console.log("to", i);
+            this._current = i;
+            var offset = this._items[i].x * -1;
+            this._container.style.transform = `translateX(${offset}px)`;
+            this._container.style.webkitTransform = `translateX(${offset}px)`;
+        }
+        return this;
     }
     //
     // next and prev are shortcuts of to method
-    this.prev = function () {
-        var increment = (this.options.perPage) ? this.options.perPage * 1 : 1;
-        this._current = this._current - increment;
-        this.to(this._current)
+    this.prev = function (e) {
+        var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
+        var targetItemIndex = this._current - increment;
+        this.to(targetItemIndex);
+        return this;
     }
-    this.next = function () {
-        var increment = (this.options.perPage) ? this.options.perPage * 1 : 1;
-        this._current = this._current + increment;
-        this.to(this._current)
+    this.next = function (e) {
+        var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
+        var targetItemIndex = this._current + increment;
+        this.to(targetItemIndex);
+        return this;
     }
     //
+    //
+    // INTIALIZE
     this.initialize = function () {
-        console.log("initialize", this.items);
+        console.log("initialize");
+
+        //identify stage
+        this._stage = document.querySelectorAll(this._options.stage)[0];
+        //identify container
+        this._container = document.querySelectorAll(this._options.container)[0];
+        //identify items
+        this._stage.querySelectorAll(this._options.items).forEach(function (item, i) {
+            var item = {
+                el: item,
+                width: item.offsetWidth,
+                height: item.offsetHeight
+            }
+            this._items.push(item);
+        }.bind(this));
 
         // bind resize handler
-        ['resize'].forEach(function(e){
-            window.addEventListener(e, this.debounce(this.resizeHandler));
+        ['load', 'resize'].forEach(function (e) {
+            window.addEventListener(e, this._debounce(this._resizeHandler.bind(this)));
         }.bind(this))
-       
 
-        //set x coordinates
-        this.items.forEach(function (item, i) {
-            item.x = item.el.offsetLeft
-        });
+        //reference and bind controls
+        var prevBtn = this._stage.querySelectorAll(this._options.prev)[0]
+        if(prevBtn) {
+            this._controls._prev = prevBtn;
+            this._controls._prev.addEventListener('click', function(){
+                this.prev()
+            }.bind(this));
+        }
+        var nextBtn = this._stage.querySelectorAll(this._options.next)[0]
+        if(nextBtn) {
+            this._controls._next = nextBtn;
+            this._controls._next.addEventListener('click', function(){
+                this.next()
+            }.bind(this));
+        }
 
         //enable transition on container
-        if (this.options.animation == "slide") {
-            this.container.style.webkitTransition = `all ${this.options.duration}ms ${this.options.easing}`;
-            this.container.style.transition = `all ${this.options.duration}ms ${this.options.easing}`;
+        if (this._options.animation == "slide") {
+            this._container.style.webkitTransition = `all ${this._options.duration}ms ${this._options.easing}`;
+            this._container.style.transition = `all ${this._options.duration}ms ${this._options.easing}`;
         }
+
+        console.log(this)
     }
     //
-    this.debounce = function(func){
-        var wait = arguments.length <= 1 || arguments[1] === undefined ? 200 : arguments[1];
-      
+    // HELPERS
+    this._debounce = function (func) {
+        var wait = arguments.length <= 1 || arguments[1] === undefined ? 100 : arguments[1];
+
         var timeout = void 0;
         return function () {
-          var _this = this;
-      
-          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-      
-          clearTimeout(timeout);
-          timeout = setTimeout(function () {
-            func.apply(_this, args);
-          }, wait);
+            var _this = this;
+
+            for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+                args[_key] = arguments[_key];
+            }
+
+            clearTimeout(timeout);
+            timeout = setTimeout(function () {
+                func.apply(_this, args);
+            }, wait);
         };
-      }
+    }
     //
     //
-    this.setStage();
     this.initialize();
 }
 
-
-//default options
-
-
-rabbitCarousel.prototype.setStage = function () {
-    console.log("setStage");
-
-    //identify stage
-    this.stage = document.querySelectorAll(this.options.stage)[0];
-    //identify container
-    this.container = document.querySelectorAll(this.options.container)[0];
-    //identify items
-    this.items = this.stage.querySelectorAll(this.options.items);
-
-    //set item width if breakpoints is set
-    if (this.options.breakpoints) {
-    this.setItemWidth();
-    }
-
-    //transform items array to array of objects with data
-    var itemsArr = []
-    this.items.forEach(function (item, i) {
-        var item = {
-            el: item,
-            width: item.offsetWidth,
-            height: item.offsetHeight
-        }
-        itemsArr.push(item);
-    });
-    this.items = itemsArr;
-
-
-
-    //set container width
-    var containerWidth = 0;
-    this.items.forEach(function (el, i) {
-        containerWidth += el.width;
-    })
-    this.container.style.width = containerWidth + "px";
-
-    //set current
-    this._current = 0;
-
-}
-
-//initialize
 
 
 
@@ -171,10 +202,22 @@ rabbitCarousel.prototype.setStage = function () {
 
 
 $(document).ready(function () {
-    var carousel = new rabbitCarousel({
+    window.carousel = new rabbitCarousel({
         duration: 1200,
-        perPage: 2
+        breakpoints: {
+            0: {
+                perPage: 1
+            },
+            480: {
+                perPage: 2
+            },
+            1024: {
+                perPage: 3
+            }
+        }
     });
-    document.querySelector('.btn--prev').addEventListener('click', function () { carousel.prev() });
-    document.querySelector('.btn--next').addEventListener('click', function () { carousel.next() });
+    // document.querySelector('.btn--prev').addEventListener('click', function (e) { carousel.prev(e) 
+    // });
+    // document.querySelector('.btn--next').addEventListener('click', function (e) { carousel.next(e) 
+    // });
 });
