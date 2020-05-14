@@ -8,9 +8,12 @@
   list-style-type: none;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-wrap: nowrap;
 }
 .carousel__item {
   float: left;
+  flex:0 0 auto;
   height: 200px;
   width: 400px;
   background: #f3f3f3;
