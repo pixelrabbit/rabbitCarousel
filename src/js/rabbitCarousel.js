@@ -9,6 +9,10 @@ function rabbitCarousel(options) {
         prev: ".btn--prev",
         next: ".btn--next",
 
+        pager: ".carousel__pager",
+        pagerLabel: "Choose item to display",
+        buttonLabel: "View item #", //# is the item number
+
         startIndex: 0, //TODO
         autoplay: false, //TODO
         circular: false, //TODO
@@ -20,12 +24,7 @@ function rabbitCarousel(options) {
 
         itemWidthPct: 1, // false or decimal; TODO: for peekaboo style
         perPage: 1,
-        breakpoints: {
-            0: {
-                perPage: 1
-            }
-        },
-        pager: false //TODO: false or provide selector for container
+        breakpoints: false
     }, options);
     //
     //
@@ -35,6 +34,7 @@ function rabbitCarousel(options) {
     this._items = [];
     this._current = null;
     this._controls = {};
+    this._pager = null;
 
     this._breakpoints = Object.keys(this._options.breakpoints).map(Number).sort(function (a, b) { return a - b }); // make array of numbers from breakpoints option
     this._stageconfig = null;
@@ -126,18 +126,45 @@ function rabbitCarousel(options) {
         return this;
     }
     //
-    // next and prev are shortcuts of to method
+    //
+    // PREV
     this.prev = function (e) {
         var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
         var targetItemIndex = this._current - increment;
         this.to(targetItemIndex);
         return this;
     }
+    // NEXT
     this.next = function (e) {
         var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
         var targetItemIndex = this._current + increment;
         this.to(targetItemIndex);
         return this;
+    }
+    //
+    //
+    // PAGER
+    this._createPager = function () {
+        if (this._options.pager) {
+            this._pager = this._stage.querySelectorAll(this._options.pager)[0];
+            this._setAttributes(this._pager, {
+                "aria-label": this._options.pagerLabel
+            })
+            this._items.forEach(function (item, i) {
+                var span = document.createElement("span");
+                span.textContent = this._options.buttonLabel.replace("#", i)
+                var button = document.createElement("button");
+                this._setAttributes(button, {
+                    type: "button"
+                })
+                button.appendChild(span);
+                button.addEventListener("click", function () {
+                    this.to(i);
+                }.bind(this))
+                var li = document.createElement("li").appendChild(button);
+                this._pager.appendChild(li);
+            }.bind(this))
+        }
     }
     //
     //
@@ -182,11 +209,14 @@ function rabbitCarousel(options) {
 
         //enable transition on container
         if (this._options.animation == "slide") {
-            this._container.style.webkitTransition = `all ${this._options.duration}ms ${this._options.easing}`;
-            this._container.style.transition = `all ${this._options.duration}ms ${this._options.easing}`;
+            this._container.style.webkitTransition = "all " + this._options.duration + "ms " + this._options.easing;
+            this._container.style.transition = "all " + this._options.duration + "ms " + this._options.easing;
         }
 
-        console.log(this)
+        //create pager
+        this._createPager();
+
+
     }
     //
     // HELPERS
@@ -214,10 +244,15 @@ function rabbitCarousel(options) {
             option = this._options[key];
         }
         // then check breakpoint options
-        if (this._stageconfig[key]) {
+        if (this._stageconfig.hasOwnProperty(key)) {
             option = this._stageconfig[key]
         }
         return option;
+    }
+    this._setAttributes = function (el, attrs) {
+        for (var key in attrs) {
+            el.setAttribute(key, attrs[key]);
+        }
     }
     //
     //
@@ -247,7 +282,7 @@ $(document).ready(function () {
                 perPage: 2,
                 itemWidthPct: 0.95
             },
-            1024: {
+            968: {
                 perPage: 3
             }
         }

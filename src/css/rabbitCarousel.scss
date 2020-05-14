@@ -10,15 +10,15 @@
   position: relative;
   display: flex;
   flex-wrap: nowrap;
+  align-items: stretch;
 }
 .carousel__item {
   float: left;
   flex:0 0 auto;
-  height: 200px;
   width: 400px;
   background: #f3f3f3;
   &:nth-child(1){background-color: darkorange;}
-  &:nth-child(2){background-color: darkcyan; width:300px;}
+  &:nth-child(2){background-color: darkcyan; width:300px; height: 300px;}
   &:nth-child(3){background-color: darkgreen;}
   &:nth-child(4){background-color: darksalmon; width:500px}
   &:nth-child(5){background-color: darkolivegreen;}
@@ -27,4 +27,26 @@
   list-style-type: none;
   text-align: center;
   > li {display: inline-block;}
+}
+.carousel__pager {
+  list-style-type: none;
+  margin: 1em 0;
+  padding: 0;
+  text-align: center;
+  > li {display: inline;}
+  button {
+    background: darkslategray;
+    border:0;
+    border-radius: 50%;
+    width:1em;
+    height: 1em;
+    margin:0 0.5em;
+    span {
+      position: absolute !important;
+      height: 1px; 
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; /* added line */}
+  }
 }
