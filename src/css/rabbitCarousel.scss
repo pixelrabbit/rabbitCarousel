@@ -12,10 +12,10 @@
   flex-wrap: nowrap;
   align-items: stretch;
 }
-.carousel__item {
+.carousel__slide {
   float: left;
   flex:0 0 auto;
-  width: 400px;
+  width: 100%;
   background: #f3f3f3;
   &:nth-child(1){background-color: darkorange;}
   &:nth-child(2){background-color: darkcyan; width:300px; height: 300px;}
@@ -35,7 +35,7 @@
   text-align: center;
   > li {display: inline;}
   button {
-    background: darkslategray;
+    background: #999;
     border:0;
     border-radius: 50%;
     width:1em;

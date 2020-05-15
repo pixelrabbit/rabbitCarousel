@@ -2,16 +2,17 @@
 {% block main %} 
   <div class="container">
     <div class="row">
+    {# ONE #}
       <div class="col-xs-12 col-md-9">
           <p>Width of carousel is determined by its container element.</p>
-        <div class="carousel__stage">
+        <div class="carousel__stage" id="one">
           <ul class="carousel__container">
-            {% for item in carousel %}
-              <li class="carousel__item">
+            {% for slide in carousel %}
+              <li class="carousel__slide">
                 <p>
-                  {{ loop.index }} {{ item.heading }}
+                  {{ loop.index }} {{ slide.heading }}
                 </p>
-                <p>{{item.content}}</p>
+                <p>{{slide.content}}</p>
                 {# <img src="http://lorempixel.com/400/200/animals/{{loop.index}}" alt=""> #}
               </li>
             {% endfor %}
@@ -21,6 +22,23 @@
               <li><button type="button" class="btn--prev"><span>Prev</span></button></li>
               <li><button type="button" class="btn--next"><span>Next</span></button></li>
           </ul>
+        </div>
+      </div>
+      {# TWO #}
+      <div class="col-xs-9">
+        <div class="carousel__stage" id="two">
+          <ul class="carousel__container">
+            {% for slide in two %}
+              <li class="carousel__slide">
+                <p>
+                  {{ loop.index }} {{ slide.heading }}
+                </p>
+                <p>{{slide.content}}</p>
+                {# <img src="http://lorempixel.com/400/200/animals/{{loop.index}}" alt=""> #}
+              </li>
+            {% endfor %}
+          </ul>
+          <ul class="carousel__pager"></ul>
         </div>
       </div>
     </div>

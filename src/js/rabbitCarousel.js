@@ -1,10 +1,13 @@
-function rabbitCarousel(options) { 
+function rabbitCarousel(options) {
 
     // merge user provided options over defaults
     this._options = Object.assign({
+
+        debug: false,
+
         stage: ".carousel__stage",
         container: ".carousel__container",
-        items: ".carousel__item",
+        slides: ".carousel__slide",
 
         prev: ".btn--prev",
         next: ".btn--next",
@@ -14,21 +17,23 @@ function rabbitCarousel(options) {
         buttonLabel: "View item #", //# is the item number
 
         startIndex: 0, //TODO
-        autoplay: false, //TODO
         circular: false, //TODO
-        timeout: 6000, //TODO
+
+        autoplay: false,
+        timeout: 6000,
+        stopOnInteraction: true,
 
         animation: "slide", //TODO: slide, fade, instant
         easing: "ease-in-out",
         duration: 250,
 
-        itemWidthPct: 1, // false or decimal; TODO: for peekaboo style
+        itemWidthPct: 1, // false or decimal
         perPage: 1,
         breakpoints: false,
 
-        onInit: function(){},
-        onBeforeChange: function(){},
-        onAfterChange: function(){}
+        onInit: function () { }, //args: carousel reference
+        onBefore: function () { }, //args: current, next
+        onAfter: function () { } //args: current, prev
 
     }, options);
     //
@@ -36,38 +41,39 @@ function rabbitCarousel(options) {
     // REFERENCES
     this._stage = null;
     this._container = null;
-    this._items = [];
+    this._slides = [];
     this._current = null;
     this._controls = {};
     this._pager = null;
 
     this._breakpoints = Object.keys(this._options.breakpoints).map(Number).sort(function (a, b) { return a - b }); // make array of numbers from breakpoints option
     this._stageconfig = null;
+    this._autoplayTimer;
     //
     //
     //set item width
     this.setItemWidth = function () {
-        //console.log("setItemWidth", this._items);
+        // console.log("setItemWidth", this._stage, this._slides);
         var stageWidth = this._stage.offsetWidth;
-        var itemWidth = stageWidth / this._stageconfig.perPage;
-        this._items.forEach(function (item, i) {
+        var itemWidth = stageWidth / this._getOption("perPage");
+        this._slides.forEach(function (slide, i) {
             var width = itemWidth;
 
-            //if item width is percentage
+            //if slide width is percentage
             if (this._getOption("itemWidthPct")) {
                 width = width * this._getOption("itemWidthPct");
             }
 
             width = Math.ceil(width);
-            item.width = width;
-            item.el.style.width = width + "px";
+            slide.width = width;
+            slide.el.style.width = width + "px";
         }.bind(this))
     }
     //
     //set container width
     this.setContainerWidth = function () {
         var containerWidth = 0;
-        this._items.forEach(function (el, i) {
+        this._slides.forEach(function (el, i) {
             containerWidth += el.width;
         })
         this._container.style.width = containerWidth + "px";
@@ -76,18 +82,14 @@ function rabbitCarousel(options) {
     //
     // STAGE
     this.setStage = function () {
-        console.log("setStage");
-
 
         //set item width if breakpoints is set
-        if (this._options.breakpoints) {
-            this.setItemWidth();
-        }
+        this.setItemWidth();
         this.setContainerWidth();
         //set x coordinates
         window.setTimeout(function () {
-            this._items.forEach(function (item, i) {
-                item.x = item.el.offsetLeft
+            this._slides.forEach(function (slide, i) {
+                slide.x = slide.el.offsetLeft
             });
         }.bind(this), 200)
 
@@ -100,9 +102,9 @@ function rabbitCarousel(options) {
     // SLIDE INFO - return object of current slide(s)
     this.info = function () {
         var info = {};
-        info["length"] = this._items.length;
+        info["length"] = this._slides.length;
         info["current"] = this._current;
-        info["numPages"] = Math.ceil(this._items.length / this._stageconfig.perPage);
+        info["numPages"] = Math.ceil(this._slides.length / this._stageconfig.perPage);
         return info;
     }
     //
@@ -119,20 +121,21 @@ function rabbitCarousel(options) {
         this.setStage();
     }
     //
-    // the main function for animating carousel
+    //
+    // TO
     this.to = function (i) {
-        if (typeof this._items[i] !== 'undefined') {
-            console.log("to", i);
-            this._options.onBeforeChange(this._current, i);
+        if (typeof this._slides[i] !== 'undefined') {
+            this._options.onBefore(this._current, i);
             var prevItem = this._current;
             this._current = i;
-            var offset = this._items[i].x * -1;
-            this._container.style.transform = `translateX(${offset}px)`;
-            this._container.style.webkitTransform = `translateX(${offset}px)`;
-            window.setTimeout(function(){
-                this._options.onAfterChange(this._current, prevItem);
+            var offset = this._slides[i].x * -1;
+            var transformValue = "translateX(" + offset + "px)"
+            this._container.style.transform = transformValue;
+            this._container.style.webkitTransform = transformValue;
+            window.setTimeout(function () {
+                this._options.onAfter(this._current, prevItem);
+
             }.bind(this), this._options.duration)
-            
         }
         return this;
     }
@@ -161,7 +164,7 @@ function rabbitCarousel(options) {
             this._setAttributes(this._pager, {
                 "aria-label": this._options.pagerLabel
             })
-            this._items.forEach(function (item, i) {
+            this._slides.forEach(function (slide, i) {
                 var span = document.createElement("span");
                 span.textContent = this._options.buttonLabel.replace("#", i)
                 var button = document.createElement("button");
@@ -174,7 +177,23 @@ function rabbitCarousel(options) {
                 }.bind(this))
                 var li = document.createElement("li").appendChild(button);
                 this._pager.appendChild(li);
+
+                slide["button"] = button;
             }.bind(this))
+        }
+    }
+    //
+    //
+    // AUTOPLAY
+    this.autoplay = function () {
+        if (this._options.autoplay) {
+            this._autoplayTimer = window.setInterval(function () {
+                if (typeof this._slides[this._current + 1] === 'undefined') {
+                    this.to(0);
+                } else {
+                    this.next();
+                }
+            }.bind(this), this._options.timeout)
         }
     }
     //
@@ -185,15 +204,15 @@ function rabbitCarousel(options) {
         //identify stage
         this._stage = document.querySelectorAll(this._options.stage)[0];
         //identify container
-        this._container = document.querySelectorAll(this._options.container)[0];
-        //identify items
-        this._stage.querySelectorAll(this._options.items).forEach(function (item, i) {
+        this._container = this._stage.querySelectorAll(this._options.container)[0];
+        //identify slides
+        this._stage.querySelectorAll(this._options.slides).forEach(function (item, i) {
             var item = {
                 el: item,
                 width: item.offsetWidth,
                 height: item.offsetHeight
             }
-            this._items.push(item);
+            this._slides.push(item);
         }.bind(this));
 
         // bind resize handler
@@ -226,7 +245,15 @@ function rabbitCarousel(options) {
         //create pager
         this._createPager();
 
-        this._options.onInit();
+        //start autoplay
+        this.autoplay();
+        if (this._options.stopOnInteraction) {
+            //TODO: remove event listener on interaction
+            this._stage.addEventListener('mouseenter', function () {
+                clearInterval(this._autoplayTimer);
+            }.bind(this))
+        }
+        this._options.onInit(this);
     }
     //
     // HELPERS
@@ -254,7 +281,7 @@ function rabbitCarousel(options) {
             option = this._options[key];
         }
         // then check breakpoint options
-        if (this._stageconfig.hasOwnProperty(key)) {
+        if (this._stageconfig && this._stageconfig.hasOwnProperty(key)) {
             option = this._stageconfig[key]
         }
         return option;
@@ -281,32 +308,34 @@ function rabbitCarousel(options) {
 
 
 $(document).ready(function () {
-    window.carousel = new rabbitCarousel({
+    window.one = new rabbitCarousel({
+        stage: "#one",
         breakpoints: {
             0: {
                 perPage: 1,
                 itemWidthPct: 0.9
             },
             480: {
-                perPage: 2,
-                itemWidthPct: 0.95
+                perPage: 1,
+                itemWidthPct: 1
             },
             968: {
-                perPage: 3
+                perPage: 1,
+                itemWidthPct: 1
             }
         },
-        onInit: function(){
-            console.log("onInit", this)
+        onInit: function (ref) {
+            console.log("onInit", ref)
         },
-        onBeforeChange: function(current, next){
-            console.log("onBeforeChange", current, next)
+        onBefore: function (current, next) {
+            //console.log("onBefore", current, next)
         },
-        onAfterChange: function(current, prev){
-            console.log("onAfterChange", current, prev)
+        onAfter: function (current, prev) {
+            //console.log("onAfter", current, prev)
         }
     });
-    // document.querySelector('.btn--prev').addEventListener('click', function (e) { carousel.prev(e) 
-    // });
-    // document.querySelector('.btn--next').addEventListener('click', function (e) { carousel.next(e) 
-    // });
+    window.two = new rabbitCarousel({
+        stage: "#two",
+        itemWidthPct: 0.9
+    })
 });
