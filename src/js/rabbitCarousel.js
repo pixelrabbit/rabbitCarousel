@@ -20,7 +20,7 @@ function rabbitCarousel(options) {
 
         animation: "slide", //TODO: slide, fade, instant
         easing: "ease-in-out",
-        duration: 400,
+        duration: 250,
 
         itemWidthPct: 1, // false or decimal; TODO: for peekaboo style
         perPage: 1,
@@ -272,7 +272,6 @@ function rabbitCarousel(options) {
 
 $(document).ready(function () {
     window.carousel = new rabbitCarousel({
-        duration: 1200,
         breakpoints: {
             0: {
                 perPage: 1,
