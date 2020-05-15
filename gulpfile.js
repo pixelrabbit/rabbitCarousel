@@ -62,7 +62,7 @@ function server(cb) {
 }
 
 
-exports.default = series(server);
+exports.default = series(compileHTML, moveJS, compileCSS, server);
 
 watch(path.html.watch).on('change', series(compileHTML, browserSync.reload));
 watch(path.js.watch).on('change', series(moveJS, browserSync.reload)); 
