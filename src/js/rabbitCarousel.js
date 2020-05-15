@@ -1,3 +1,5 @@
+//TODO: swipe, current on pager, disable prev and next, circular scrolling
+
 function rabbitCarousel(options) {
 
     // merge user provided options over defaults
@@ -46,7 +48,7 @@ function rabbitCarousel(options) {
     this._controls = {};
     this._pager = null;
 
-    this._breakpoints = Object.keys(this._options.breakpoints).map(Number).sort(function (a, b) { return a - b }); // make array of numbers from breakpoints option
+    this._breakpoints = null;
     this._stageconfig = null;
     this._autoplayTimer;
     //
@@ -112,12 +114,14 @@ function rabbitCarousel(options) {
     // RESIZE HANDLER
     this._resizeHandler = function (e) {
         var vw = window.innerWidth || document.documentElement.clientWidth;
-        this._breakpoints.forEach(function (bp, i) {
-            bp = Number(bp)
-            if (vw > bp) {
-                this._stageconfig = this._options.breakpoints[bp];
-            }
-        }.bind(this))
+        if (this._breakpoints) {
+            this._breakpoints.forEach(function (bp, i) {
+                bp = Number(bp)
+                if (vw > bp) {
+                    this._stageconfig = this._options.breakpoints[bp];
+                }
+            }.bind(this))
+        }
         this.setStage();
     }
     //
@@ -143,14 +147,14 @@ function rabbitCarousel(options) {
     //
     // PREV
     this.prev = function (e) {
-        var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
+        var increment = (this._getOption("perPage")) ? this._getOption("perPage") * 1 : 1;
         var targetItemIndex = this._current - increment;
         this.to(targetItemIndex);
         return this;
     }
     // NEXT
     this.next = function (e) {
-        var increment = (this._stageconfig.perPage) ? this._stageconfig.perPage * 1 : 1;
+        var increment = (this._getOption("perPage")) ? this._getOption("perPage") * 1 : 1;
         var targetItemIndex = this._current + increment;
         this.to(targetItemIndex);
         return this;
@@ -214,6 +218,11 @@ function rabbitCarousel(options) {
             }
             this._slides.push(item);
         }.bind(this));
+
+        // make array of numbers from breakpoints option
+        if (this._options.breakpoints) {
+            this._breakpoints = Object.keys(this._options.breakpoints).map(Number).sort(function (a, b) { return a - b });
+        }
 
         // bind resize handler
         ['load', 'resize'].forEach(function (e) {
@@ -297,7 +306,54 @@ function rabbitCarousel(options) {
     this.initialize();
 }
 
-
+// forEach polyfill
+if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = function (callback, thisArg) {
+        thisArg = thisArg || window;
+        for (var i = 0; i < this.length; i++) {
+            callback.call(thisArg, this[i], i, this);
+        }
+    };
+}
+// object.assign polyfill
+if (typeof Object.assign !== 'function') {
+    // Must be writable: true, enumerable: false, configurable: true
+    Object.defineProperty(Object, "assign", {
+        value: function assign(target, varArgs) { // .length of function is 2
+            'use strict';
+            if (target === null || target === undefined) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+            var to = Object(target);
+            for (var index = 1; index < arguments.length; index++) {
+                var nextSource = arguments[index];
+                if (nextSource !== null && nextSource !== undefined) {
+                    for (var nextKey in nextSource) {
+                        // Avoid bugs when hasOwnProperty is shadowed
+                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                            to[nextKey] = nextSource[nextKey];
+                        }
+                    }
+                }
+            }
+            return to;
+        },
+        writable: true,
+        configurable: true
+    });
+}
+// object.keys polyfill
+if (!Object.keys) {
+    Object.keys = function (obj) {
+        var keys = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
+            }
+        }
+        return keys;
+    };
+}
 
 
 
@@ -326,16 +382,13 @@ $(document).ready(function () {
         },
         onInit: function (ref) {
             console.log("onInit", ref)
-        },
-        onBefore: function (current, next) {
-            //console.log("onBefore", current, next)
-        },
-        onAfter: function (current, prev) {
-            //console.log("onAfter", current, prev)
         }
     });
-    window.two = new rabbitCarousel({
+    two = new rabbitCarousel({
         stage: "#two",
         itemWidthPct: 0.9
     })
+    window.setTimeout(function () {
+        two.next()
+    }, 10000)
 });
