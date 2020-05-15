@@ -1,4 +1,4 @@
-function rabbitCarousel(options) {
+function rabbitCarousel(options) { 
 
     // merge user provided options over defaults
     this._options = Object.assign({
