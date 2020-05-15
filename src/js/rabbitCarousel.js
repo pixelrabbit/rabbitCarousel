@@ -24,7 +24,12 @@ function rabbitCarousel(options) {
 
         itemWidthPct: 1, // false or decimal; TODO: for peekaboo style
         perPage: 1,
-        breakpoints: false
+        breakpoints: false,
+
+        onInit: function(){},
+        onBeforeChange: function(){},
+        onAfterChange: function(){}
+
     }, options);
     //
     //
@@ -118,10 +123,16 @@ function rabbitCarousel(options) {
     this.to = function (i) {
         if (typeof this._items[i] !== 'undefined') {
             console.log("to", i);
+            this._options.onBeforeChange(this._current, i);
+            var prevItem = this._current;
             this._current = i;
             var offset = this._items[i].x * -1;
             this._container.style.transform = `translateX(${offset}px)`;
             this._container.style.webkitTransform = `translateX(${offset}px)`;
+            window.setTimeout(function(){
+                this._options.onAfterChange(this._current, prevItem);
+            }.bind(this), this._options.duration)
+            
         }
         return this;
     }
@@ -170,7 +181,6 @@ function rabbitCarousel(options) {
     //
     // INTIALIZE
     this.initialize = function () {
-        console.log("initialize");
 
         //identify stage
         this._stage = document.querySelectorAll(this._options.stage)[0];
@@ -216,7 +226,7 @@ function rabbitCarousel(options) {
         //create pager
         this._createPager();
 
-
+        this._options.onInit();
     }
     //
     // HELPERS
@@ -284,6 +294,15 @@ $(document).ready(function () {
             968: {
                 perPage: 3
             }
+        },
+        onInit: function(){
+            console.log("onInit", this)
+        },
+        onBeforeChange: function(current, next){
+            console.log("onBeforeChange", current, next)
+        },
+        onAfterChange: function(current, prev){
+            console.log("onAfterChange", current, prev)
         }
     });
     // document.querySelector('.btn--prev').addEventListener('click', function (e) { carousel.prev(e) 
