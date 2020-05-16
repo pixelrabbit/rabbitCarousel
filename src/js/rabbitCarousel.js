@@ -50,7 +50,7 @@ function rabbitCarousel(options) {
 
     this._breakpoints = null;
     this._stageconfig = null;
-    this._autoplayTimer;
+    this._autoplayTimer; 
     //
     //
     //set item width
@@ -190,7 +190,7 @@ function rabbitCarousel(options) {
     //
     // UPDATE PAGER
     this._updatePager = function(){
-        if (this._options.pager) {
+        if (this._pager) {
             this._slides.forEach(function(slide, i){
                 if(i === this._current){
                     slide.button.classList.add("current");
@@ -198,6 +198,23 @@ function rabbitCarousel(options) {
                     slide.button.classList.remove("current");
                 }
             }.bind(this))
+        }
+    }
+    // UPDATE CONTROLS
+    this._updateControls = function(){
+        if(this._controls.prev || this._controls.next){
+            if(this._current <= 0){
+                console.log(this._controls)
+                makeDisabled(this._controls.prev);
+            }
+            if(this._current >= this._slides.length){
+                console.log(this._slides.length)
+                makeDisabled(this._controls.next);
+            }
+        }
+        function makeDisabled(button){
+            //console.log("makedisabled",el)
+            button.setAttribute("aria-disabled","true"); 
         }
     }
     //
@@ -246,15 +263,15 @@ function rabbitCarousel(options) {
         //reference and bind controls
         var prevBtn = this._stage.querySelectorAll(this._options.prev)[0]
         if (prevBtn) {
-            this._controls._prev = prevBtn;
-            this._controls._prev.addEventListener('click', function () {
+            this._controls.prev = prevBtn;
+            this._controls.prev.addEventListener('click', function () {
                 this.prev()
             }.bind(this));
         }
         var nextBtn = this._stage.querySelectorAll(this._options.next)[0]
         if (nextBtn) {
-            this._controls._next = nextBtn;
-            this._controls._next.addEventListener('click', function () {
+            this._controls.next = nextBtn;
+            this._controls.next.addEventListener('click', function () {
                 this.next()
             }.bind(this));
         }
@@ -268,6 +285,7 @@ function rabbitCarousel(options) {
         //create pager
         this._createPager();
         this._updatePager(); 
+        this._updateControls();
 
         //start autoplay
         this.autoplay();
