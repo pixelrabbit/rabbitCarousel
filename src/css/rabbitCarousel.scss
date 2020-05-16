@@ -27,6 +27,7 @@
   list-style-type: none;
   text-align: center;
   > li {display: inline-block;}
+  [aria-disabled="true"]{opacity:0.5}
 }
 .carousel__pager {
   list-style-type: none;

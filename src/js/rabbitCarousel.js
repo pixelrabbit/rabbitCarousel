@@ -5,8 +5,6 @@ function rabbitCarousel(options) {
     // merge user provided options over defaults
     this._options = Object.assign({
 
-        debug: false,
-
         stage: ".carousel__stage",
         container: ".carousel__container",
         slides: ".carousel__slide",
@@ -19,7 +17,7 @@ function rabbitCarousel(options) {
         buttonLabel: "View item #", //# is the item number
 
         startIndex: 0, //TODO
-        circular: false, //TODO
+        loop: false, //TODO
 
         autoplay: false,
         timeout: 6000,
@@ -29,7 +27,7 @@ function rabbitCarousel(options) {
         easing: "ease-in-out",
         duration: 250,
 
-        itemWidthPct: 1, // false or decimal
+        itemWidthPct: 1, // 1 or decimal
         perPage: 1,
         breakpoints: false,
 
@@ -127,7 +125,7 @@ function rabbitCarousel(options) {
     //
     //
     // TO
-    this.to = function (i) {
+    this.to = function (i, instant) {
         if (typeof this._slides[i] !== 'undefined') {
             this._options.onBefore(this._current, i);
             var prevItem = this._current;
@@ -140,6 +138,7 @@ function rabbitCarousel(options) {
                 this._options.onAfter(this._current, prevItem);
             }.bind(this), this._options.duration);
             this._updatePager();
+            this._updateControls();
         }
         return this;
     }
@@ -163,8 +162,7 @@ function rabbitCarousel(options) {
     //
     // PAGER
     this._createPager = function () {
-        if (this._options.pager) {
-            this._pager = this._stage.querySelectorAll(this._options.pager)[0];
+        if (this._pager) {
             this._setAttributes(this._pager, {
                 "aria-label": this._options.pagerLabel
             })
@@ -202,19 +200,19 @@ function rabbitCarousel(options) {
     }
     // UPDATE CONTROLS
     this._updateControls = function(){
+        if(!this._options.loop){
         if(this._controls.prev || this._controls.next){
             if(this._current <= 0){
-                console.log(this._controls)
-                makeDisabled(this._controls.prev);
+                this._controls.prev.setAttribute("aria-disabled","true"); 
+            } else {
+                this._controls.prev.setAttribute("aria-disabled","false"); 
             }
-            if(this._current >= this._slides.length){
-                console.log(this._slides.length)
-                makeDisabled(this._controls.next);
+            if(this._current >= this._slides.length - 1){
+                this._controls.next.setAttribute("aria-disabled","true"); 
+            } else {
+                this._controls.next.setAttribute("aria-disabled","false"); 
             }
         }
-        function makeDisabled(button){
-            //console.log("makedisabled",el)
-            button.setAttribute("aria-disabled","true"); 
         }
     }
     //
@@ -249,6 +247,11 @@ function rabbitCarousel(options) {
             }
             this._slides.push(item);
         }.bind(this));
+        
+        //identify pager if it exists
+        if(this._stage.querySelectorAll(this._options.pager)[0]){
+            this._pager = this._stage.querySelectorAll(this._options.pager)[0]
+        }
 
         // make array of numbers from breakpoints option
         if (this._options.breakpoints) {
@@ -261,16 +264,14 @@ function rabbitCarousel(options) {
         }.bind(this))
 
         //reference and bind controls
-        var prevBtn = this._stage.querySelectorAll(this._options.prev)[0]
-        if (prevBtn) {
-            this._controls.prev = prevBtn;
+        this._controls.prev = this._stage.querySelectorAll(this._options.prev)[0]
+        if (this._controls.prev) {
             this._controls.prev.addEventListener('click', function () {
                 this.prev()
             }.bind(this));
         }
-        var nextBtn = this._stage.querySelectorAll(this._options.next)[0]
-        if (nextBtn) {
-            this._controls.next = nextBtn;
+        this._controls.next = this._stage.querySelectorAll(this._options.next)[0]
+        if (this._controls.next) {
             this._controls.next.addEventListener('click', function () {
                 this.next()
             }.bind(this));
@@ -387,41 +388,3 @@ if (!Object.keys) {
         return keys;
     };
 }
-
-
-
-
-
-
-
-
-
-$(document).ready(function () {
-    window.one = new rabbitCarousel({
-        stage: "#one",
-        breakpoints: {
-            0: {
-                perPage: 1,
-                itemWidthPct: 0.9
-            },
-            480: {
-                perPage: 1,
-                itemWidthPct: 1
-            },
-            968: {
-                perPage: 1,
-                itemWidthPct: 1
-            }
-        },
-        onInit: function (ref) {
-            console.log("onInit", ref)
-        }
-    });
-    two = new rabbitCarousel({
-        stage: "#two",
-        itemWidthPct: 0.9
-    })
-    window.setTimeout(function () {
-        two.next()
-    }, 10000)
-});

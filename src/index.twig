@@ -41,6 +41,58 @@
           <ul class="carousel__pager"></ul>
         </div>
       </div>
+      {# THREE #}
+      <div class="col-xs-10">
+        <div class="carousel__stage" id="three">
+          <ul class="carousel__container">
+            {% for slide in two %}
+              <li class="carousel__slide">
+                <p>
+                  {{ loop.index }} {{ slide.heading }}
+                </p>
+                <p>{{slide.content}}</p>
+                {# <img src="http://lorempixel.com/400/200/animals/{{loop.index}}" alt=""> #}
+              </li>
+            {% endfor %}
+          </ul>
+          <ul class="carousel__controls">
+              <li><button type="button" class="btn--prev"><span>Prev</span></button></li>
+              <li><button type="button" class="btn--next"><span>Next</span></button></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
+  <script>
+    $(document).ready(function () {
+    window.one = new rabbitCarousel({
+        stage: "#one",
+        breakpoints: {
+            0: {
+                perPage: 1,
+                itemWidthPct: 0.9
+            },
+            480: {
+                perPage: 1,
+                itemWidthPct: 1
+            },
+            968: {
+                perPage: 1,
+                itemWidthPct: 1
+            }
+        },
+        onInit: function (ref) {
+            console.log("onInit", ref)
+        }
+    });
+    two = new rabbitCarousel({
+        stage: "#two",
+        itemWidthPct: 0.9
+    })
+    three = new rabbitCarousel({
+        stage: "#three",
+        itemWidthPct: 0.9
+    })
+});
+  </script>
 {% endblock %}
