@@ -44,7 +44,7 @@ function rabbitCarousel(options) {
     this._stage = null;
     this._container = null;
     this._slides = [];
-    this._current = null;
+    this._current = 0;
     this._controls = {};
     this._pager = null;
 
@@ -138,8 +138,8 @@ function rabbitCarousel(options) {
             this._container.style.webkitTransform = transformValue;
             window.setTimeout(function () {
                 this._options.onAfter(this._current, prevItem);
-
-            }.bind(this), this._options.duration)
+            }.bind(this), this._options.duration);
+            this._updatePager();
         }
         return this;
     }
@@ -183,6 +183,20 @@ function rabbitCarousel(options) {
                 this._pager.appendChild(li);
 
                 slide["button"] = button;
+            }.bind(this))
+        }
+    }
+    //
+    //
+    // UPDATE PAGER
+    this._updatePager = function(){
+        if (this._options.pager) {
+            this._slides.forEach(function(slide, i){
+                if(i === this._current){
+                    slide.button.classList.add("current");
+                } else {
+                    slide.button.classList.remove("current");
+                }
             }.bind(this))
         }
     }
@@ -253,6 +267,7 @@ function rabbitCarousel(options) {
 
         //create pager
         this._createPager();
+        this._updatePager(); 
 
         //start autoplay
         this.autoplay();
