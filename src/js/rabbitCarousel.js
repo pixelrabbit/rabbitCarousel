@@ -51,6 +51,7 @@ function rabbitCarousel(options) {
     this._stageconfig = null;
     this._autoplayTimer;
     this._swipe = {};
+    this._offset = 0;
     //
     //
     //set item width
@@ -130,6 +131,8 @@ function rabbitCarousel(options) {
     this._makeSwipable = function () {
         this._container.addEventListener('touchstart', swipeStart.bind(this));
         this._container.addEventListener('mousedown', swipeStart.bind(this));
+        this._container.addEventListener('touchmove', swipeMove.bind(this));
+        this._container.addEventListener('mousemove', swipeMove.bind(this));
         this._container.addEventListener('touchend', swipeEnd.bind(this))
         this._container.addEventListener('mouseup', swipeEnd.bind(this))
         //TODO: swipes with pointer/cursor
@@ -142,6 +145,13 @@ function rabbitCarousel(options) {
                 return;
             }
             this._swipe.start = unifyEvent(e).clientX;
+            this._swipe.down = true;
+            this._swipe.containerX = 
+        }
+        function swipeMove(e){
+            if(this._swipe.down){
+            console.log(unifyEvent(e).offsetX)
+            }
         }
         function swipeEnd(e) {
             this._swipe.end = unifyEvent(e).clientX;
