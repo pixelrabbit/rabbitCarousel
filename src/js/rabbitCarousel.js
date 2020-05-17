@@ -19,6 +19,9 @@ function rabbitCarousel(options) {
         startIndex: 0, //TODO
         loop: false, //TODO
 
+        swipe: true,
+        swipeThreshold: 50,
+
         autoplay: false,
         timeout: 6000,
         stopOnInteraction: true,
@@ -48,7 +51,8 @@ function rabbitCarousel(options) {
 
     this._breakpoints = null;
     this._stageconfig = null;
-    this._autoplayTimer; 
+    this._autoplayTimer;
+    this._swipe = {};
     //
     //
     //set item width
@@ -124,6 +128,32 @@ function rabbitCarousel(options) {
     }
     //
     //
+    // SWIPABLE
+    this._makeSwipable = function () {
+        this._container.addEventListener('touchstart', swipeStart.bind(this));
+        this._container.addEventListener('mousedown', swipeStart.bind(this));
+        this._container.addEventListener('touchend', swipeEnd.bind(this))
+        this._container.addEventListener('mouseup', swipeEnd.bind(this))
+
+
+        function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
+        function swipeStart(e) {
+            //TODO: need to ignore form fields
+            this._swipe.start = unifyEvent(e).clientX;
+        }
+        function swipeEnd(e) {
+            this._swipe.end = unifyEvent(e).clientX;
+            if (Math.abs(this._swipe.start - this._swipe.end) > this._options.swipeThreshold) {
+                if (this._swipe.end > this._swipe.start) {
+                    this.prev();
+                } else {
+                    this.next();
+                }
+            }
+        }
+    }
+    //
+    //
     // TO
     this.to = function (i, instant) {
         if (typeof this._slides[i] !== 'undefined') {
@@ -187,10 +217,10 @@ function rabbitCarousel(options) {
     //
     //
     // UPDATE PAGER
-    this._updatePager = function(){
+    this._updatePager = function () {
         if (this._pager) {
-            this._slides.forEach(function(slide, i){
-                if(i === this._current){
+            this._slides.forEach(function (slide, i) {
+                if (i === this._current) {
                     slide.button.classList.add("current");
                 } else {
                     slide.button.classList.remove("current");
@@ -199,20 +229,20 @@ function rabbitCarousel(options) {
         }
     }
     // UPDATE CONTROLS
-    this._updateControls = function(){
-        if(!this._options.loop){
-        if(this._controls.prev || this._controls.next){
-            if(this._current <= 0){
-                this._controls.prev.setAttribute("aria-disabled","true"); 
-            } else {
-                this._controls.prev.setAttribute("aria-disabled","false"); 
+    this._updateControls = function () {
+        if (!this._options.loop) {
+            if (this._controls.prev || this._controls.next) {
+                if (this._current <= 0) {
+                    this._controls.prev.setAttribute("aria-disabled", "true");
+                } else {
+                    this._controls.prev.setAttribute("aria-disabled", "false");
+                }
+                if (this._current >= this._slides.length - 1) {
+                    this._controls.next.setAttribute("aria-disabled", "true");
+                } else {
+                    this._controls.next.setAttribute("aria-disabled", "false");
+                }
             }
-            if(this._current >= this._slides.length - 1){
-                this._controls.next.setAttribute("aria-disabled","true"); 
-            } else {
-                this._controls.next.setAttribute("aria-disabled","false"); 
-            }
-        }
         }
     }
     //
@@ -247,9 +277,9 @@ function rabbitCarousel(options) {
             }
             this._slides.push(item);
         }.bind(this));
-        
+
         //identify pager if it exists
-        if(this._stage.querySelectorAll(this._options.pager)[0]){
+        if (this._stage.querySelectorAll(this._options.pager)[0]) {
             this._pager = this._stage.querySelectorAll(this._options.pager)[0]
         }
 
@@ -285,7 +315,7 @@ function rabbitCarousel(options) {
 
         //create pager
         this._createPager();
-        this._updatePager(); 
+        this._updatePager();
         this._updateControls();
 
         //start autoplay
@@ -296,6 +326,11 @@ function rabbitCarousel(options) {
                 clearInterval(this._autoplayTimer);
             }.bind(this))
         }
+
+        if (this._options.swipe) {
+            this._makeSwipable();
+        }
+
         this._options.onInit(this);
     }
     //
