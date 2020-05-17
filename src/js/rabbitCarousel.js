@@ -1,5 +1,3 @@
-//TODO: swipe, current on pager, disable prev and next, circular scrolling
-
 function rabbitCarousel(options) {
 
     // merge user provided options over defaults
@@ -134,11 +132,17 @@ function rabbitCarousel(options) {
         this._container.addEventListener('mousedown', swipeStart.bind(this));
         this._container.addEventListener('touchend', swipeEnd.bind(this))
         this._container.addEventListener('mouseup', swipeEnd.bind(this))
+        //TODO: swipes with pointer/cursor
 
 
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
         function swipeStart(e) {
-            //TODO: need to ignore form fields
+            // ignore swipes starting in form fields
+            console.log(unifyEvent(e))
+            if(['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1){
+                this._swipe = {};
+                return;
+            }
             this._swipe.start = unifyEvent(e).clientX;
         }
         function swipeEnd(e) {
@@ -149,6 +153,7 @@ function rabbitCarousel(options) {
                 } else {
                     this.next();
                 }
+                this._swipe = {};
             }
         }
     }
