@@ -134,12 +134,10 @@ function rabbitCarousel(options) {
         this._container.addEventListener('mouseup', swipeEnd.bind(this))
         //TODO: swipes with pointer/cursor
 
-
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
         function swipeStart(e) {
             // ignore swipes starting in form fields
-            console.log(unifyEvent(e))
-            if(['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1){
+            if (['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
                 this._swipe = {};
                 return;
             }
