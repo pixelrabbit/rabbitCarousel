@@ -3,7 +3,7 @@ function rabbitCarousel(options) {
     // merge user provided options over defaults
     this._options = Object.assign({
 
-        stage: ".carousel__stage",
+        stage: ".carousel",
         container: ".carousel__container",
         slides: ".carousel__slide",
 
@@ -12,13 +12,13 @@ function rabbitCarousel(options) {
 
         pager: ".carousel__pager",
         pagerLabel: "Choose item to display",
-        buttonLabel: "View item #", //# is the item number
+        pagerButtonText: "View item #", //# is the item number
 
         startIndex: 0, //TODO
         loop: false, //TODO
 
         swipe: true,
-        swipeThreshold: 50,
+        swipeThreshold: 10,
 
         autoplay: false,
         timeout: 6000,
@@ -30,6 +30,7 @@ function rabbitCarousel(options) {
 
         itemWidthPct: 1, // 1 or decimal
         perPage: 1,
+        advanceByPage: false,
         breakpoints: false,
 
         onInit: function () { }, //args: carousel reference
@@ -102,16 +103,6 @@ function rabbitCarousel(options) {
     }
     //
     //
-    // SLIDE INFO - return object of current slide(s)
-    this.info = function () {
-        var info = {};
-        info["length"] = this._slides.length;
-        info["current"] = this._current;
-        info["numPages"] = Math.ceil(this._slides.length / this._stageconfig.perPage);
-        return info;
-    }
-    //
-    //
     // RESIZE HANDLER
     this._resizeHandler = function (e) {
         var vw = window.innerWidth || document.documentElement.clientWidth;
@@ -140,7 +131,7 @@ function rabbitCarousel(options) {
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
         function swipeStart(e) {
             e.stopPropagation();
-            // ignore swipes starting in form fields
+            // ignore swipes starting in form fields or text elements
             if (['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
                 this._swipe = {};
                 return;
@@ -149,27 +140,27 @@ function rabbitCarousel(options) {
             this._swipe.pressed = true;
             this._unsetTransitionStyle();
         }
-        function swipeMove(e){
+        function swipeMove(e) {
             e.stopPropagation();
-            if(this._swipe.pressed){
-                var delta =  unifyEvent(e).pageX - this._swipe.start;
-                var dragOffset = this._offset + delta;
-                this._container.style.transform = "translateX(" + dragOffset + "px)";
+            if (this._swipe.pressed) {
+                var delta = unifyEvent(e).pageX - this._swipe.start;
+                if (Math.abs(delta) > this._options.swipeThreshold) {
+                    var dragOffset = this._offset + delta;
+                    this._container.style.transform = "translateX(" + dragOffset + "px)";
+                    this._container.classList.add("carousel__container--grabbing");
+                }
             }
         }
         function swipeEnd(e) {
             e.stopPropagation();
             this._swipe.end = unifyEvent(e).pageX;
-            this._swipe.pressed  = false;
+            this._swipe.pressed = false;
             if (Math.abs(this._swipe.end - this._swipe.start) > this._options.swipeThreshold) {
-                if (this._swipe.end > this._swipe.start) {
-                    this.prev();
-                } else {
-                    this.next();
-                }
-                this._swipe = {};
+                (this._swipe.end > this._swipe.start) ? this.prev() : this.next();
             }
+            this._swipe = {};
             this._setTransitionStyle();
+            this._container.classList.remove("carousel__container--grabbing");
         }
     }
     //
@@ -196,14 +187,14 @@ function rabbitCarousel(options) {
     //
     // PREV
     this.prev = function (e) {
-        var increment = (this._getOption("perPage")) ? this._getOption("perPage") * 1 : 1;
+        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") * 1 : 1;
         var targetItemIndex = this._current - increment;
         this.to(targetItemIndex);
         return this;
     }
     // NEXT
     this.next = function (e) {
-        var increment = (this._getOption("perPage")) ? this._getOption("perPage") * 1 : 1;
+        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") * 1 : 1;
         var targetItemIndex = this._current + increment;
         this.to(targetItemIndex);
         return this;
@@ -213,12 +204,13 @@ function rabbitCarousel(options) {
     // PAGER
     this._createPager = function () {
         if (this._pager) {
+            this._pager.classList.add("carousel__pager");
             this._setAttributes(this._pager, {
                 "aria-label": this._options.pagerLabel
             })
             this._slides.forEach(function (slide, i) {
                 var span = document.createElement("span");
-                span.textContent = this._options.buttonLabel.replace("#", i)
+                span.textContent = this._options.pagerButtonText.replace("#", i)
                 var button = document.createElement("button");
                 this._setAttributes(button, {
                     type: "button"
@@ -286,10 +278,13 @@ function rabbitCarousel(options) {
 
         //identify stage
         this._stage = document.querySelectorAll(this._options.stage)[0];
+        this._stage.classList.add("carousel");
         //identify container
         this._container = this._stage.querySelectorAll(this._options.container)[0];
+        this._container.classList.add("carousel__container")
         //identify slides
         this._stage.querySelectorAll(this._options.slides).forEach(function (item, i) {
+            item.classList.add("carousel__slide")
             var item = {
                 el: item,
                 width: item.offsetWidth,
@@ -352,13 +347,13 @@ function rabbitCarousel(options) {
     }
     //
     // HELPERS
-    this._setTransitionStyle = function(){
+    this._setTransitionStyle = function () {
         if (this._options.animation == "slide") {
             this._container.style.webkitTransition = "all " + this._options.duration + "ms " + this._options.easing;
             this._container.style.transition = "all " + this._options.duration + "ms " + this._options.easing;
         }
     }
-    this._unsetTransitionStyle = function(){
+    this._unsetTransitionStyle = function () {
         if (this._options.animation == "slide") {
             this._container.style.webkitTransition = "all 0ms ";
             this._container.style.transition = "all 0ms ";

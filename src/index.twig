@@ -5,7 +5,7 @@
     {# ONE #}
       <div class="col-xs-12 col-md-9">
           <p>Width of carousel is determined by its container element.</p>
-        <div class="carousel__stage" id="one">
+        <div class="carousel" id="one">
           <ul class="carousel__container">
             {% for slide in carousel %}
               <li class="carousel__slide">
@@ -27,7 +27,7 @@
       </div>
       {# TWO #}
       <div class="col-xs-9">
-        <div class="carousel__stage" id="two">
+        <div class="carousel" id="two">
           <ul class="carousel__container">
             {% for slide in two %}
               <li class="carousel__slide">
@@ -44,10 +44,10 @@
       </div>
       {# THREE #}
       <div class="col-xs-10">
-        <div class="carousel__stage" id="three">
-          <ul class="carousel__container">
+        <div class="orange" id="three">
+          <ul class="apple">
             {% for slide in two %}
-              <li class="carousel__slide">
+              <li class="banana">
                 <p>
                   {{ loop.index }} {{ slide.heading }}
                 </p>
@@ -60,6 +60,7 @@
               <li><button type="button" class="btn--prev"><span>Prev</span></button></li>
               <li><button type="button" class="btn--next"><span>Next</span></button></li>
           </ul>
+          <ul id="pager"></ul>
         </div>
       </div>
     </div>
@@ -88,11 +89,24 @@
     });
     two = new rabbitCarousel({
         stage: "#two",
-        itemWidthPct: 0.9
+        perPage: 2
     })
     three = new rabbitCarousel({
+
         stage: "#three",
-        itemWidthPct: 0.9
+        container: ".apple",
+        slides: ".banana",
+        pager: "#pager",
+        breakpoints :{
+          0: {
+            perPage: 1,
+            itemWidthPct: 0.9
+          },
+          1024: {
+            perPage: 3,
+            itemWidthPct: 1
+          }
+        }
     })
 });
   </script>
