@@ -1,3 +1,8 @@
+//TODO: hooks for timeout progress
+// count
+// varying height
+// cursor controls
+
 function rabbitCarousel(options) {
 
     // merge user provided options over defaults
@@ -13,6 +18,7 @@ function rabbitCarousel(options) {
         pager: ".carousel__pager",
         pagerLabel: "Choose item to display",
         pagerButtonText: "View item #", //# is the item number
+        progress: ".carousel__progress",
 
         startIndex: 0, //TODO
         loop: false, //TODO
@@ -96,10 +102,6 @@ function rabbitCarousel(options) {
                 slide.x = slide.el.offsetLeft
             });
         }.bind(this), 200)
-
-        //set current
-        this._current = 0;
-
     }
     //
     //
@@ -115,6 +117,10 @@ function rabbitCarousel(options) {
             }.bind(this))
         }
         this.setStage();
+        // window.setTimeout(function(){
+        //     this.to(this._current)
+        // }.bind(this),10)
+    
     }
     //
     //
@@ -126,13 +132,14 @@ function rabbitCarousel(options) {
         this._container.addEventListener('mousemove', swipeMove.bind(this));
         this._container.addEventListener('touchend', swipeEnd.bind(this))
         this._container.addEventListener('mouseup', swipeEnd.bind(this))
+        this._container.addEventListener('mouseleave', swipeLeave.bind(this))
         //TODO: swipes with pointer/cursor
 
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
         function swipeStart(e) {
             e.stopPropagation();
             // ignore swipes starting in form fields or text elements
-            if (['P','TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
+            if (['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
                 this._swipe = {};
                 return;
             }
@@ -173,6 +180,14 @@ function rabbitCarousel(options) {
             this._swipe = {};
             this._setTransitionStyle();
             this._container.classList.remove("carousel__container--grabbing");
+        }
+        function swipeLeave(e) {
+            e.stopPropagation();
+            this._swipe = {};
+            this._setTransitionStyle();
+            this._container.classList.remove("carousel__container--grabbing");
+            this.to(this._current);
+            return;
         }
     }
     //
@@ -274,13 +289,28 @@ function rabbitCarousel(options) {
     // AUTOPLAY
     this.autoplay = function () {
         if (this._options.autoplay) {
+            if(this._progress){
+            var bar = this._progress.children[0];
+            animateBar(this);
+            }
             this._autoplayTimer = window.setInterval(function () {
                 if (typeof this._slides[this._current + 1] === 'undefined') {
                     this.to(0);
                 } else {
                     this.next();
                 }
-            }.bind(this), this._options.timeout)
+                if(this._progress) animateBar(this);
+            }.bind(this), this._options.timeout);
+
+            function animateBar(ref) {
+                bar.style.transition = "width 0ms";
+                bar.style.width = "0%";
+                window.setTimeout(function () {
+                    console.log(typeof ref._options.timeout, ref._options.timeout)
+                    bar.style.transition = "width " + (ref._options.timeout*.95) + "ms linear";
+                    bar.style.width = "100%";
+                }, 10)
+            }
         }
     }
     //
@@ -304,6 +334,26 @@ function rabbitCarousel(options) {
             }
             this._slides.push(item);
         }.bind(this));
+
+        //accessibility and aria roles
+        this._setAttributes(this._stage, {
+            "aria-roledescription":"carousel"
+        });
+        if(!this._stage.getAttribute('aria-label')) console.warn("Carousel should have aria-label describing contents", this._stage)
+        this._slides.forEach(function(slide, i){
+            this._setAttributes(slide.el, {
+                "role":"group",
+                "aria-roledescription": "slide",
+                "aria-label": (i+1) + " of " + this._slides.length
+            })
+        }.bind(this))
+
+
+        //progress
+        this._progress = this._stage.querySelectorAll(this._options.progress)[0];
+        if (this._progress) {
+            this._progress.classList.add("carousel__progress");
+        }
 
         //identify pager if it exists
         if (this._stage.querySelectorAll(this._options.pager)[0]) {
@@ -348,6 +398,12 @@ function rabbitCarousel(options) {
             //TODO: remove event listener on interaction
             this._stage.addEventListener('mouseenter', function () {
                 clearInterval(this._autoplayTimer);
+                //TODO: progress bar on interaction is WIP
+                if (this._progress) {
+                    var bar = this._progress.children[0];
+                    bar.removeAttribute('style')
+                    bar.style.width = "100%";
+                }
             }.bind(this))
         }
 

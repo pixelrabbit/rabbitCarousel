@@ -80,6 +80,11 @@
     }
   }
 }
+.carousel__progress {
+  height: 0.5em;
+  background: #eee;
+  div {height: 100%; width:0%; background: darkslategray;}
+}
 
 .carousel__container--grabbing {
   cursor: grabbing;

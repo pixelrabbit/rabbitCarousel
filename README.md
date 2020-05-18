@@ -10,3 +10,4 @@ Scratch built carousel
 
 
 inspired by https://pawelgrzybek.github.io/siema/#browser-support
+https://www.w3.org/TR/wai-aria-practices/examples/carousel/carousel-1.html

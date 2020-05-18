@@ -5,7 +5,7 @@
     {# ONE #}
       <div class="col-xs-12 col-md-9">
           <p>Width of carousel is determined by its container element.</p>
-        <div class="carousel" id="one">
+        <div class="carousel" id="one" aria-label="Generica carousel">
           <ul class="carousel__container">
             {% for slide in carousel %}
               <li class="carousel__slide">
@@ -26,7 +26,7 @@
         </div>
       </div>
       {# TWO #}
-      <div class="col-xs-9">
+      <div class="col-xs-9 col-md-6">
         <div class="carousel" id="two">
           <ul class="carousel__container">
             {% for slide in two %}
@@ -56,6 +56,7 @@
               </li>
             {% endfor %}
           </ul>
+          
           <ul class="carousel__controls">
               <li><button type="button" class="btn--prev"><span>Prev</span></button></li>
               <li><button type="button" class="btn--next"><span>Next</span></button></li>
@@ -89,7 +90,8 @@
     });
     two = new rabbitCarousel({
         stage: "#two",
-        perPage: 2
+        autoplay: true,
+        timeout: 6000
     })
     three = new rabbitCarousel({
 
