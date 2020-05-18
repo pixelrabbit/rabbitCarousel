@@ -19,7 +19,6 @@ function rabbitCarousel(options) {
 
         swipe: true,
         swipeThreshold: 50,
-        swipeRatio: 1,
 
         autoplay: false,
         timeout: 6000,
@@ -153,9 +152,8 @@ function rabbitCarousel(options) {
         function swipeMove(e){
             e.stopPropagation();
             if(this._swipe.pressed){
-                var delta = Math.abs(unifyEvent(e).pageX - this._swipe.start)
-                var dragOffset = this._offset - delta * this._options.swipeRatio;
-                console.log(delta, dragOffset)
+                var delta =  unifyEvent(e).pageX - this._swipe.start;
+                var dragOffset = this._offset + delta;
                 this._container.style.transform = "translateX(" + dragOffset + "px)";
             }
         }
