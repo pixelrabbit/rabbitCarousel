@@ -132,7 +132,7 @@ function rabbitCarousel(options) {
         function swipeStart(e) {
             e.stopPropagation();
             // ignore swipes starting in form fields or text elements
-            if (['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
+            if (['P','TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
                 this._swipe = {};
                 return;
             }
@@ -156,7 +156,19 @@ function rabbitCarousel(options) {
             this._swipe.end = unifyEvent(e).pageX;
             this._swipe.pressed = false;
             if (Math.abs(this._swipe.end - this._swipe.start) > this._options.swipeThreshold) {
-                (this._swipe.end > this._swipe.start) ? this.prev() : this.next();
+                if (this._swipe.end > this._swipe.start) {
+                    if (this._current == 0) {
+                        this.to(0)
+                    } else {
+                        this.prev()
+                    }
+                } else {
+                    if (this._current == this._slides.length - 1) {
+                        this.to(this._slides.length - 1)
+                    } else {
+                        this.next()
+                    }
+                }
             }
             this._swipe = {};
             this._setTransitionStyle();
