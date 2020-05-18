@@ -19,6 +19,7 @@ function rabbitCarousel(options) {
 
         swipe: true,
         swipeThreshold: 50,
+        swipeRatio: 1,
 
         autoplay: false,
         timeout: 6000,
@@ -139,25 +140,30 @@ function rabbitCarousel(options) {
 
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
         function swipeStart(e) {
+            e.stopPropagation();
             // ignore swipes starting in form fields
             if (['TEXTAREA', 'OPTION', 'INPUT', 'SELECT', 'BUTTON'].indexOf(unifyEvent(e).target.nodeName) !== -1) {
                 this._swipe = {};
                 return;
             }
-            this._swipe.start = unifyEvent(e).clientX;
-            this._swipe.down = true;
+            this._swipe.start = unifyEvent(e).pageX;
+            this._swipe.pressed = true;
+            this._unsetTransitionStyle();
         }
         function swipeMove(e){
-            if(this._swipe.down){
-                console.log(unifyEvent(e).pageX)
-                var dragOffset = this._offset - unifyEvent(e).offsetX;
+            e.stopPropagation();
+            if(this._swipe.pressed){
+                var delta = Math.abs(unifyEvent(e).pageX - this._swipe.start)
+                var dragOffset = this._offset - delta * this._options.swipeRatio;
+                console.log(delta, dragOffset)
                 this._container.style.transform = "translateX(" + dragOffset + "px)";
             }
         }
         function swipeEnd(e) {
-            this._swipe.end = unifyEvent(e).clientX;
-            this._swipe.down = false;
-            if (Math.abs(this._swipe.start - this._swipe.end) > this._options.swipeThreshold) {
+            e.stopPropagation();
+            this._swipe.end = unifyEvent(e).pageX;
+            this._swipe.pressed  = false;
+            if (Math.abs(this._swipe.end - this._swipe.start) > this._options.swipeThreshold) {
                 if (this._swipe.end > this._swipe.start) {
                     this.prev();
                 } else {
@@ -165,6 +171,7 @@ function rabbitCarousel(options) {
                 }
                 this._swipe = {};
             }
+            this._setTransitionStyle();
         }
     }
     //
@@ -323,10 +330,7 @@ function rabbitCarousel(options) {
         }
 
         //enable transition on container
-        if (this._options.animation == "slide") {
-            this._container.style.webkitTransition = "all " + this._options.duration + "ms " + this._options.easing;
-            this._container.style.transition = "all " + this._options.duration + "ms " + this._options.easing;
-        }
+        this._setTransitionStyle();
 
         //create pager
         this._createPager();
@@ -350,6 +354,18 @@ function rabbitCarousel(options) {
     }
     //
     // HELPERS
+    this._setTransitionStyle = function(){
+        if (this._options.animation == "slide") {
+            this._container.style.webkitTransition = "all " + this._options.duration + "ms " + this._options.easing;
+            this._container.style.transition = "all " + this._options.duration + "ms " + this._options.easing;
+        }
+    }
+    this._unsetTransitionStyle = function(){
+        if (this._options.animation == "slide") {
+            this._container.style.webkitTransition = "all 0ms ";
+            this._container.style.transition = "all 0ms ";
+        }
+    }
     this._debounce = function (func) {
         var wait = arguments.length <= 1 || arguments[1] === undefined ? 100 : arguments[1];
 
