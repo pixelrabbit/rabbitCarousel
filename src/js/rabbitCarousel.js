@@ -21,14 +21,14 @@ function rabbitCarousel(options) {
         progress: ".carousel__progress",
 
         startIndex: 0, //TODO
-        loop: false, //TODO
+        loop: false,
 
         swipe: true,
         swipeThreshold: 10,
 
         autoplay: false,
         timeout: 6000,
-        stopOnInteraction: true,
+        stopOnInteraction: false, //TODO this is broken with loop
 
         animation: "slide", //TODO: slide, fade, instant
         easing: "ease-in-out",
@@ -50,6 +50,8 @@ function rabbitCarousel(options) {
     this._stage = null;
     this._container = null;
     this._slides = [];
+    this._slidesAll = [];
+    this._fauxslides = [];
     this._current = 0;
     this._controls = {};
     this._pager = null;
@@ -66,7 +68,7 @@ function rabbitCarousel(options) {
         // console.log("setItemWidth", this._stage, this._slides);
         var stageWidth = this._stage.offsetWidth;
         var itemWidth = stageWidth / this._getOption("perPage");
-        this._slides.forEach(function (slide, i) {
+        this._slidesAll.forEach(function (slide, i) {
             var width = itemWidth;
 
             //if slide width is percentage
@@ -83,8 +85,8 @@ function rabbitCarousel(options) {
     //set container width
     this.setContainerWidth = function () {
         var containerWidth = 0;
-        this._slides.forEach(function (el, i) {
-            containerWidth += el.width;
+        this._slidesAll.forEach(function (slide, i) {
+            containerWidth += slide.width;
         })
         this._container.style.width = containerWidth + "px";
     }
@@ -96,7 +98,7 @@ function rabbitCarousel(options) {
         this.setItemWidth();
         this.setContainerWidth();
         //set x coordinates
-        this._slides.forEach(function (slide, i) {
+        this._slidesAll.forEach(function (slide, i) {
             slide.x = slide.el.offsetLeft
         });
     }
@@ -168,10 +170,10 @@ function rabbitCarousel(options) {
                         this.prev()
                     }
                 } else {
-                    if (this._current == this._slides.length - 1) {
-                        this.to(this._slides.length - 1)
+                    if (this._current == this._slidesAll.length - 1) {
+                        this.to(this._slidesAll.length - 1)
                     } else {
-                        this.next()
+                        this.next();
                     }
                 }
             }
@@ -191,15 +193,23 @@ function rabbitCarousel(options) {
     //
     //
     // TO
-    this.to = function (i) {
-        if (typeof this._slides[i] !== 'undefined') {
+    this.to = function (i, cb) {
+        if (typeof this._slidesAll[i] !== 'undefined') {
             this._options.onBefore(this._current, i);
             var prevItem = this._current;
             this._current = i;
-            this._offset = this._slides[i].x * -1;
+            this._offset = this._slidesAll[i].x * -1;
             this._container.style.transform = "translateX(" + this._offset + "px)";
             window.setTimeout(function () {
                 this._options.onAfter(this._current, prevItem);
+                // for loops; if slide is clone then go instantly to actual item
+                if(this._slidesAll[i].clone){
+                    // var origIndex = this._slidesAll.indexOf(this._slides[i].clone);
+                    // this._unsetTransitionStyle();
+                    // this._container.style.transform = "translateX(" + this._slides[origIndex].x + "px)";
+                }
+
+                if(cb) cb();
             }.bind(this), this._options.duration);
             this._updatePager();
             this._updateControls();
@@ -209,17 +219,17 @@ function rabbitCarousel(options) {
     //
     //
     // PREV
-    this.prev = function (e) {
-        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") * 1 : 1;
+    this.prev = function (cb) {
+        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") : 1;
         var targetItemIndex = this._current - increment;
-        this.to(targetItemIndex);
+        this.to(targetItemIndex, cb);
         return this;
     }
     // NEXT
-    this.next = function (e) {
-        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") * 1 : 1;
+    this.next = function (cb) {
+        var increment = (this._getOption("perPage") && this._getOption("advanceByPage")) ? this._getOption("perPage") : 1;
         var targetItemIndex = this._current + increment;
-        this.to(targetItemIndex);
+        this.to(targetItemIndex, cb);
         return this;
     }
     //
@@ -231,7 +241,8 @@ function rabbitCarousel(options) {
             this._setAttributes(this._pager, {
                 "aria-label": this._options.pagerLabel
             })
-            this._slides.forEach(function (slide, i) {
+            this._slidesAll.forEach(function (slide, i) {
+                if(slide.clone) return;
                 var span = document.createElement("span");
                 span.textContent = this._options.pagerButtonText.replace("#", i)
                 var button = document.createElement("button");
@@ -254,7 +265,8 @@ function rabbitCarousel(options) {
     // UPDATE PAGER
     this._updatePager = function () {
         if (this._pager) {
-            this._slides.forEach(function (slide, i) {
+            this._slidesAll.forEach(function (slide, i) {
+                if(slide.clone) return;
                 if (i === this._current) {
                     slide.button.classList.add("current");
                 } else {
@@ -320,6 +332,7 @@ function rabbitCarousel(options) {
         //identify container
         this._container = this._stage.querySelectorAll(this._options.container)[0];
         this._container.classList.add("carousel__container")
+
         //identify slides
         this._stage.querySelectorAll(this._options.slides).forEach(function (item, i) {
             item.classList.add("carousel__slide")
@@ -330,6 +343,32 @@ function rabbitCarousel(options) {
             }
             this._slides.push(item);
         }.bind(this));
+
+        //loop
+        if (this._options.loop) {
+            const fragment = document.createDocumentFragment();
+            var fauxPrepend = [];
+            for (i = 0; i < this._getOption("perPage"); i++) {
+                var reverse = this._slides.length - 1 - i;
+                var slide = this._slides[reverse];
+                var fauxSlide = slide.el.cloneNode(true);
+                this._setAttributes(fauxSlide, {
+                    "aria-hidden":"true"
+                })
+                fauxPrepend.push({
+                    el: fauxSlide,
+                    width: slide.width,
+                    height: slide.height,
+                    clone: slide
+                })
+                fragment.appendChild(fauxSlide);
+            }
+            this._slidesAll = fauxPrepend.concat(this._slides)
+            this._container.insertBefore(fragment, this._container.children[0]);
+            this._current = fauxPrepend.length;
+        } else {
+            this._slidesAll = this._slides;
+        }
 
         //accessibility and aria roles
         this._setAttributes(this._stage, {

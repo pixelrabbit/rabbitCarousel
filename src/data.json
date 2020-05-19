@@ -1,27 +1,24 @@
 {
     "carousel":[{
         "heading":"Slide 1" ,
+        "class":"gray",
         "content":"<a href='#'>Test Link</a>"
     },{
-        "heading":"lorem"
+        "heading":"lorem",
+        "class":"yellow"
     },{
-        "heading":"lorem"
+        "heading":"lorem",
+        "class":"blue"
     },{
-        "heading":"lorem"
+        "heading":"lorem",
+        "class":"red"
     },{
-        "heading":"lorem"
+        "heading":"lorem",
+        "class":"cyan"
     }],
     "two":[{
         "heading":"Two" ,
         "content":"<a href='#'>Test Link</a>"
-    },{
-        "heading":"lorem"
-    },{
-        "heading":"lorem"
-    },{
-        "heading":"lorem"
-    },{
-        "heading":"lorem"
     },{
         "heading":"lorem"
     },{

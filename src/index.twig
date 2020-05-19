@@ -8,7 +8,7 @@
         <div class="carousel" id="one" aria-label="Generica carousel">
           <ul class="carousel__container">
             {% for slide in carousel %}
-              <li class="carousel__slide">
+              <li class="carousel__slide {{slide.class}}">
                 <p>
                   {{ loop.index }} {{ slide.heading }}
                 </p>
@@ -70,6 +70,7 @@
     $(document).ready(function () {
     window.one = new rabbitCarousel({
         stage: "#one",
+        loop: true,
         breakpoints: {
             0: {
                 perPage: 1,
@@ -90,7 +91,7 @@
     });
     two = new rabbitCarousel({
         stage: "#two",
-        autoplay: true,
+        autoplay: false,
         timeout: 6000
     })
     three = new rabbitCarousel({
