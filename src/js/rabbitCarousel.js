@@ -193,24 +193,26 @@ function rabbitCarousel(options) {
     //
     //
     // TO
-    this.to = function (i, cb) {
+    this.to = function (i, cb, instant) {
+        instant = (typeof instant !== 'undefined') ?  instant : false;
         if (typeof this._slidesAll[i] !== 'undefined') {
             this._options.onBefore(this._current, i);
             var prevItem = this._current;
             this._current = i;
             this._offset = this._slidesAll[i].x * -1;
             this._container.style.transform = "translateX(" + this._offset + "px)";
+
+            instant ? this._unsetTransitionStyle() : this._setTransitionStyle();
             window.setTimeout(function () {
                 this._options.onAfter(this._current, prevItem);
                 // for loops; if slide is clone then go instantly to actual item
-                if(this._slidesAll[i].clone){
-                    // var origIndex = this._slidesAll.indexOf(this._slides[i].clone);
-                    // this._unsetTransitionStyle();
-                    // this._container.style.transform = "translateX(" + this._slides[origIndex].x + "px)";
+                if (this._slidesAll[i].clone) {
+                    this.to(5, null, true);
                 }
 
-                if(cb) cb();
+                if (cb) cb();
             }.bind(this), this._options.duration);
+
             this._updatePager();
             this._updateControls();
         }
@@ -242,7 +244,7 @@ function rabbitCarousel(options) {
                 "aria-label": this._options.pagerLabel
             })
             this._slidesAll.forEach(function (slide, i) {
-                if(slide.clone) return;
+                if (slide.clone) return;
                 var span = document.createElement("span");
                 span.textContent = this._options.pagerButtonText.replace("#", i)
                 var button = document.createElement("button");
@@ -266,7 +268,7 @@ function rabbitCarousel(options) {
     this._updatePager = function () {
         if (this._pager) {
             this._slidesAll.forEach(function (slide, i) {
-                if(slide.clone) return;
+                if (slide.clone) return;
                 if (i === this._current) {
                     slide.button.classList.add("current");
                 } else {
@@ -353,7 +355,7 @@ function rabbitCarousel(options) {
                 var slide = this._slides[reverse];
                 var fauxSlide = slide.el.cloneNode(true);
                 this._setAttributes(fauxSlide, {
-                    "aria-hidden":"true"
+                    "aria-hidden": "true"
                 })
                 fauxPrepend.push({
                     el: fauxSlide,
