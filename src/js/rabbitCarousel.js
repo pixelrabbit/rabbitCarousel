@@ -1,7 +1,7 @@
 //TODO: hooks for timeout progress
 // count
 // varying height
-// cursor controls
+// keyboard controls
 
 function rabbitCarousel(options) {
 
@@ -92,16 +92,13 @@ function rabbitCarousel(options) {
     //
     // STAGE
     this.setStage = function () {
-
         //set item width if breakpoints is set
         this.setItemWidth();
         this.setContainerWidth();
         //set x coordinates
-        window.setTimeout(function () {
-            this._slides.forEach(function (slide, i) {
-                slide.x = slide.el.offsetLeft
-            });
-        }.bind(this), 200)
+        this._slides.forEach(function (slide, i) {
+            slide.x = slide.el.offsetLeft
+        });
     }
     //
     //
@@ -117,22 +114,23 @@ function rabbitCarousel(options) {
             }.bind(this))
         }
         this.setStage();
-        // window.setTimeout(function(){
-        //     this.to(this._current)
-        // }.bind(this),10)
-    
+
+        window.setTimeout(function () {
+            this.to(this._current)
+        }.bind(this), 10)
     }
     //
     //
     // SWIPABLE
     this._makeSwipable = function () {
-        this._container.addEventListener('touchstart', swipeStart.bind(this));
-        this._container.addEventListener('mousedown', swipeStart.bind(this));
-        this._container.addEventListener('touchmove', swipeMove.bind(this));
-        this._container.addEventListener('mousemove', swipeMove.bind(this));
-        this._container.addEventListener('touchend', swipeEnd.bind(this))
-        this._container.addEventListener('mouseup', swipeEnd.bind(this))
-        this._container.addEventListener('mouseleave', swipeLeave.bind(this))
+        // passive:true at recommendation of chromium
+        this._container.addEventListener('touchstart', swipeStart.bind(this), { passive: true });
+        this._container.addEventListener('mousedown', swipeStart.bind(this), { passive: true });
+        this._container.addEventListener('touchmove', swipeMove.bind(this), { passive: true });
+        this._container.addEventListener('mousemove', swipeMove.bind(this), { passive: true });
+        this._container.addEventListener('touchend', swipeEnd.bind(this), { passive: true })
+        this._container.addEventListener('mouseup', swipeEnd.bind(this), { passive: true })
+        this._container.addEventListener('mouseleave', swipeLeave.bind(this), { passive: true })
         //TODO: swipes with pointer/cursor
 
         function unifyEvent(e) { return e.changedTouches ? e.changedTouches[0] : e };
@@ -193,15 +191,13 @@ function rabbitCarousel(options) {
     //
     //
     // TO
-    this.to = function (i, instant) {
+    this.to = function (i) {
         if (typeof this._slides[i] !== 'undefined') {
             this._options.onBefore(this._current, i);
             var prevItem = this._current;
             this._current = i;
             this._offset = this._slides[i].x * -1;
-            var transformValue = "translateX(" + this._offset + "px)"
-            this._container.style.transform = transformValue;
-            //this._container.style.webkitTransform = transformValue;
+            this._container.style.transform = "translateX(" + this._offset + "px)";
             window.setTimeout(function () {
                 this._options.onAfter(this._current, prevItem);
             }.bind(this), this._options.duration);
@@ -289,9 +285,9 @@ function rabbitCarousel(options) {
     // AUTOPLAY
     this.autoplay = function () {
         if (this._options.autoplay) {
-            if(this._progress){
-            var bar = this._progress.children[0];
-            animateBar(this);
+            if (this._progress) {
+                var bar = this._progress.children[0];
+                animateBar(this);
             }
             this._autoplayTimer = window.setInterval(function () {
                 if (typeof this._slides[this._current + 1] === 'undefined') {
@@ -299,7 +295,7 @@ function rabbitCarousel(options) {
                 } else {
                     this.next();
                 }
-                if(this._progress) animateBar(this);
+                if (this._progress) animateBar(this);
             }.bind(this), this._options.timeout);
 
             function animateBar(ref) {
@@ -307,7 +303,7 @@ function rabbitCarousel(options) {
                 bar.style.width = "0%";
                 window.setTimeout(function () {
                     console.log(typeof ref._options.timeout, ref._options.timeout)
-                    bar.style.transition = "width " + (ref._options.timeout*.95) + "ms linear";
+                    bar.style.transition = "width " + (ref._options.timeout * .95) + "ms linear";
                     bar.style.width = "100%";
                 }, 10)
             }
@@ -337,14 +333,14 @@ function rabbitCarousel(options) {
 
         //accessibility and aria roles
         this._setAttributes(this._stage, {
-            "aria-roledescription":"carousel"
+            "aria-roledescription": "carousel"
         });
-        if(!this._stage.getAttribute('aria-label')) console.warn("Carousel should have aria-label describing contents", this._stage)
-        this._slides.forEach(function(slide, i){
+        if (!this._stage.getAttribute('aria-label')) console.warn("Carousel should have aria-label describing contents", this._stage)
+        this._slides.forEach(function (slide, i) {
             this._setAttributes(slide.el, {
-                "role":"group",
+                "role": "group",
                 "aria-roledescription": "slide",
-                "aria-label": (i+1) + " of " + this._slides.length
+                "aria-label": (i + 1) + " of " + this._slides.length
             })
         }.bind(this))
 
