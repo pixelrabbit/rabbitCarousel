@@ -118,7 +118,8 @@ function rabbitCarousel(options) {
         this.setStage();
 
         window.setTimeout(function () {
-            this.to(this._current)
+            //TODO: flash on load
+            this.to(this._current, null, true)
         }.bind(this), 10)
     }
     //
@@ -206,7 +207,8 @@ function rabbitCarousel(options) {
                 this._options.onAfter(this._current, prevItem);
                 // for loops; if slide is clone then go instantly to actual item
                 if (this._slidesAll[i].clone) {
-                    this.to(5, null, true);
+                    //TODO: this feels clumsy
+                    this.to(this._slidesAll[i].origIndex + this._getOption("perPage"), null, true);
                 }
                 this._updatePager();
                 this._updateControls();
@@ -347,26 +349,50 @@ function rabbitCarousel(options) {
 
         //loop
         if (this._options.loop) {
-            const fragment = document.createDocumentFragment();
-            var fauxPrepend = [];
-            for (i = 0; i < this._getOption("perPage"); i++) {
-                var reverse = this._slides.length - 1 - i;
-                var slide = this._slides[reverse];
+            
+            // var prepend = map(this._slides).splice(this._getOption("perPage") * -1, this._getOption("perPage"));
+            // var append = map(this._slides).splice(0, this._getOption("perPage"));
+            // function cloner(slide){
+            //     slide["clone"] = slide.el;
+            //     slide.el = slide.el.cloneNode(true);
+            //     slide.el.setAttribute("aria-hidden","true")
+            //     return slide;
+            // }
+
+            // var prependFragment = document.createDocumentFragment();
+            // var prepend = this._slides.map(function(x){return x}).splice(this._getOption("perPage") * -1, this._getOption("perPage"));
+            // prepend.map(cloner);
+            // prependFragment.appendChild(prepend[0].el);
+            // this._container.insertBefore(prependFragment, this._container.children[0]);
+
+
+            // var appendFragment = document.createDocumentFragment();
+            // var append = this._slides.map(function(x){return x}).splice(0, this._getOption("perPage"));
+            // append.map(cloner);
+            // appendFragment.appendChild(append[0].el);
+            // this._container.appendChild(appendFragment);
+
+            var fragment = document.createDocumentFragment();
+            var prepend = [];
+            for (i = this._slides.length - 1; i > this._slides.length - 1 - this._getOption("perPage"); i--) {
+                
+                var slide = this._slides[i];
                 var fauxSlide = slide.el.cloneNode(true);
                 this._setAttributes(fauxSlide, {
                     "aria-hidden": "true"
                 })
-                fauxPrepend.push({
+                prepend.push({
                     el: fauxSlide,
                     width: slide.width,
                     height: slide.height,
-                    clone: slide
+                    clone: slide,
+                    origIndex: i
                 })
                 fragment.appendChild(fauxSlide);
             }
-            this._slidesAll = fauxPrepend.concat(this._slides)
             this._container.insertBefore(fragment, this._container.children[0]);
-            this._current = fauxPrepend.length;
+            this._slidesAll = prepend.concat(this._slides)
+            this._current = prepend.length;
         } else {
             this._slidesAll = this._slides;
         }
