@@ -9,12 +9,6 @@
     },{
         "heading":"lorem",
         "class":"blue"
-    },{
-        "heading":"lorem",
-        "class":"red"
-    },{
-        "heading":"lorem",
-        "class":"cyan"
     }],
     "two":[{
         "heading":"Two" ,

@@ -208,7 +208,7 @@ function rabbitCarousel(options) {
                 // for loops; if slide is clone then go instantly to actual item
                 if (this._slidesAll[i].clone) {
                     //TODO: this feels clumsy
-                    this.to(this._slidesAll[i].origIndex + this._getOption("perPage"), null, true);
+                    this.to(3, null, true);
                 }
                 this._updatePager();
                 this._updateControls();
@@ -350,48 +350,34 @@ function rabbitCarousel(options) {
         //loop
         if (this._options.loop) {
             
-            // var prepend = map(this._slides).splice(this._getOption("perPage") * -1, this._getOption("perPage"));
-            // var append = map(this._slides).splice(0, this._getOption("perPage"));
-            // function cloner(slide){
-            //     slide["clone"] = slide.el;
-            //     slide.el = slide.el.cloneNode(true);
-            //     slide.el.setAttribute("aria-hidden","true")
-            //     return slide;
-            // }
-
-            // var prependFragment = document.createDocumentFragment();
-            // var prepend = this._slides.map(function(x){return x}).splice(this._getOption("perPage") * -1, this._getOption("perPage"));
-            // prepend.map(cloner);
-            // prependFragment.appendChild(prepend[0].el);
-            // this._container.insertBefore(prependFragment, this._container.children[0]);
-
-
-            // var appendFragment = document.createDocumentFragment();
-            // var append = this._slides.map(function(x){return x}).splice(0, this._getOption("perPage"));
-            // append.map(cloner);
-            // appendFragment.appendChild(append[0].el);
-            // this._container.appendChild(appendFragment);
-
-            var fragment = document.createDocumentFragment();
-            var prepend = [];
-            for (i = this._slides.length - 1; i > this._slides.length - 1 - this._getOption("perPage"); i--) {
-                
-                var slide = this._slides[i];
+            function makeFakeSlides(slide, arr, fragment){
                 var fauxSlide = slide.el.cloneNode(true);
-                this._setAttributes(fauxSlide, {
-                    "aria-hidden": "true"
-                })
-                prepend.push({
+                fauxSlide.setAttribute("aria-hidden", "true")
+                arr.push({
                     el: fauxSlide,
                     width: slide.width,
                     height: slide.height,
-                    clone: slide,
-                    origIndex: i
+                    clone: slide
                 })
                 fragment.appendChild(fauxSlide);
             }
-            this._container.insertBefore(fragment, this._container.children[0]);
-            this._slidesAll = prepend.concat(this._slides)
+
+            var prependFragment = document.createDocumentFragment();
+            var prepend = [];
+            for (i = this._slides.length - 1; i > this._slides.length - 1 - this._getOption("perPage"); i--) {
+                makeFakeSlides(this._slides[i], prepend, prependFragment)
+            }
+
+            var appendFragment = document.createDocumentFragment();
+            var append = [];
+            for (i = 0; i < this._getOption("perPage"); i++) {
+                makeFakeSlides(this._slides[i], append, appendFragment);
+            }
+
+            this._container.insertBefore(prependFragment, this._container.children[0]);
+            this._container.appendChild(appendFragment)
+
+            this._slidesAll = prepend.concat(this._slides, append)
             this._current = prepend.length;
         } else {
             this._slidesAll = this._slides;
