@@ -11,12 +11,15 @@
         "class":"blue"
     }],
     "two":[{
-        "heading":"Two" ,
+        "heading":"Two One" ,
+        "class":"gray",
         "content":"<a href='#'>Test Link</a>"
     },{
-        "heading":"lorem"
+        "heading":"Two Two",
+        "class":"yellow"
     },{
-        "heading":"lorem"
+        "heading":"Two Three",
+        "class":"blue"
     }]
 
 }

@@ -208,7 +208,7 @@ function rabbitCarousel(options) {
                 // for loops; if slide is clone then go instantly to actual item
                 if (this._slidesAll[i].clone) {
                     //TODO: this feels clumsy
-                    this.to(3, null, true);
+                    this.to(this._slidesAll[i].origIndex, null, true);
                 }
                 this._updatePager();
                 this._updateControls();
@@ -326,38 +326,21 @@ function rabbitCarousel(options) {
     }
     //
     //
-    // INTIALIZE
-    this.initialize = function () {
-
-        //identify stage
-        this._stage = document.querySelectorAll(this._options.stage)[0];
-        this._stage.classList.add("carousel");
-        //identify container
-        this._container = this._stage.querySelectorAll(this._options.container)[0];
-        this._container.classList.add("carousel__container")
-
-        //identify slides
-        this._stage.querySelectorAll(this._options.slides).forEach(function (item, i) {
-            item.classList.add("carousel__slide")
-            var item = {
-                el: item,
-                width: item.offsetWidth,
-                height: item.offsetHeight
-            }
-            this._slides.push(item);
-        }.bind(this));
-
-        //loop
+    // LOOPER
+    this._loop = function () {
         if (this._options.loop) {
-            
-            function makeFakeSlides(slide, arr, fragment){
+
+            var _this = this;
+
+            function makeFakeSlides(slide, arr, fragment) {
                 var fauxSlide = slide.el.cloneNode(true);
                 fauxSlide.setAttribute("aria-hidden", "true")
                 arr.push({
                     el: fauxSlide,
                     width: slide.width,
                     height: slide.height,
-                    clone: slide
+                    clone: slide,
+                    origIndex: _this._slides.indexOf(slide) + _this._getOption("perPage")
                 })
                 fragment.appendChild(fauxSlide);
             }
@@ -382,6 +365,32 @@ function rabbitCarousel(options) {
         } else {
             this._slidesAll = this._slides;
         }
+    }
+    //
+    //
+    // INTIALIZE
+    this.initialize = function () {
+
+        //identify stage
+        this._stage = document.querySelectorAll(this._options.stage)[0];
+        this._stage.classList.add("carousel");
+        //identify container
+        this._container = this._stage.querySelectorAll(this._options.container)[0];
+        this._container.classList.add("carousel__container")
+
+        //identify slides
+        this._stage.querySelectorAll(this._options.slides).forEach(function (item, i) {
+            item.classList.add("carousel__slide")
+            var item = {
+                el: item,
+                width: item.offsetWidth,
+                height: item.offsetHeight
+            }
+            this._slides.push(item);
+        }.bind(this));
+
+        //loop
+        this._loop();
 
         //accessibility and aria roles
         this._setAttributes(this._stage, {

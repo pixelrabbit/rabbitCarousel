@@ -30,7 +30,7 @@
         <div class="carousel" id="two">
           <ul class="carousel__container">
             {% for slide in two %}
-              <li class="carousel__slide">
+              <li class="carousel__slide {{slide.class}}">
                 <p>
                   {{ loop.index }} {{ slide.heading }}
                 </p>
@@ -47,7 +47,7 @@
         <div class="orange" id="three">
           <ul class="apple">
             {% for slide in two %}
-              <li class="banana">
+              <li class="banana {{slide.class}}">
                 <p>
                   {{ loop.index }} {{ slide.heading }}
                 </p>
@@ -92,11 +92,13 @@
     two = new rabbitCarousel({
         stage: "#two",
         autoplay: false,
-        timeout: 6000
+        timeout: 6000,
+        loop: false
     })
     three = new rabbitCarousel({
 
         stage: "#three",
+        loop: true,
         container: ".apple",
         slides: ".banana",
         pager: "#pager",
